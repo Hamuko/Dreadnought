@@ -6,6 +6,7 @@ struct DreadnoughtApp: App {
 
     init() {
         self.client = TorrentClient()
+        self.client.loadPreferences()
         self.client.start()
     }
 

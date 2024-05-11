@@ -124,6 +124,8 @@ class TorrentClient: ObservableObject {
                     DispatchQueue.main.async {
                         self.authenticationState = .authenticated
                     }
+                    UserDefaults.standard.setValue(self.cookies, forKey: PreferenceNames.clientCookie)
+                    UserDefaults.standard.setValue(self.baseURL?.absoluteString, forKey: PreferenceNames.serverURL)
                     return
                 }
             }
@@ -133,6 +135,18 @@ class TorrentClient: ObservableObject {
         }
         Logger.torrentClient.debug("Authenticating on \(url)")
         task.resume()
+    }
+    
+    func loadPreferences() {
+        if let clientCookie = UserDefaults.standard.string(forKey: PreferenceNames.clientCookie) {
+            Logger.torrentClient.debug("Loaded client cookie from preferences.")
+            self.cookies = clientCookie
+            self.authenticationState = .authenticated
+        }
+        if let serverURL = UserDefaults.standard.string(forKey: PreferenceNames.serverURL) {
+            Logger.torrentClient.debug("Loaded base URL from preferences.")
+            self.baseURL = URL(string: serverURL)
+        }
     }
 
     func start() {

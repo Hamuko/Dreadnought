@@ -208,7 +208,7 @@ struct ContentView: View {
 struct LoginView: View {
     @Environment(\.dismiss) var dismiss
 
-    @AppStorage("ServerURL") private var url: String = ""
+    @State private var url: String = ""
     @State private var username: String = ""
     @State private var password: String = ""
     
@@ -268,8 +268,13 @@ struct LoginView: View {
         .textFieldStyle(.roundedBorder)
         .frame(width: 450)
         .padding()
+        .onAppear() {
+            if let url = UserDefaults.standard.string(forKey: PreferenceNames.serverURL) {
+                self.url = url
+            }
+        }
     }
-    
+
     func login() {
         guard canSubmit else { return }
         client.baseURL = URL(string: url)
