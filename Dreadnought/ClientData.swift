@@ -40,6 +40,7 @@ struct TorrentData: Decodable {
     let upspeed: Int?
     let category: String?
     let addedOn: Int?
+    let state: String?
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -50,6 +51,7 @@ struct TorrentData: Decodable {
         case upspeed
         case category
         case addedOn = "added_on"
+        case state
     }
     
     init(from decoder: any Decoder) throws {
@@ -62,6 +64,7 @@ struct TorrentData: Decodable {
         upspeed = (try? values.decode(Int.self, forKey: .upspeed))
         category = (try? values.decode(String.self, forKey: .category))
         addedOn = try? values.decode(Int.self, forKey: .addedOn)
+        state = try? values.decode(String.self, forKey: .state)
     }
 }
 

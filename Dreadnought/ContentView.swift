@@ -75,7 +75,9 @@ struct TorrentView: View {
         } detail: {
             VStack(spacing: 0) {
                 Table(visibleTorrents, selection: $selectedTorrents, sortOrder: $sortOrder) {
-                    TableColumn("Name", value: \.name)
+                    TableColumn("Name", value: \.name) { torrent in
+                        TorrentName(torrent: torrent)
+                    }
 
                     TableColumn("Progress") { torrent in
                         Text(torrent.progress, format: ProgressFormatStyle())
@@ -142,6 +144,48 @@ struct TorrentView: View {
         }.sheet(isPresented: $client.authenticationState.needsAuthentication, content: {
             LoginView().environmentObject(client)
         })
+    }
+}
+
+struct TorrentName : View {
+    var torrent: Torrent
+    
+    var imageName: String {
+        switch torrent.state {
+            case .allocating: "externaldrive.fill.badge.timemachine"
+            case .checkingResumeData, .checkingDL, .checkingUP, .moving: "arrow.triangle.2.circlepath.circle"
+            case .downloading, .forcedDL: "arrowshape.down.circle.fill"
+            case .error: "exclamationmark.octagon.fill"
+            case .metaDL: "arrow.clockwise.circle"
+            case .missingFiles: "exclamationmark.triangle.fill"
+            case .pausedDL, .pausedUP: "pause.circle"
+            case .stalledDL, .queuedDL: "arrowshape.down.circle"
+            case .stalledUP, .queuedUP: "arrowshape.up.circle"
+            case .uploading, .forcedUP: "arrowshape.up.circle.fill"
+            default: "questionmark.circle"
+        }
+    }
+    var imageColor: AnyShapeStyle {
+        switch torrent.state {
+            case .allocating, .pausedDL, .pausedUP, .stalledDL, .stalledUP: AnyShapeStyle(.secondary)
+            case .error: AnyShapeStyle(.red)
+            case .forcedDL, .forcedUP: AnyShapeStyle(.orange)
+            case .missingFiles: AnyShapeStyle(.yellow)
+            case .queuedDL, .queuedUP: AnyShapeStyle(.tertiary)
+            default: AnyShapeStyle(.primary)
+        }
+    }
+
+    var body : some View {
+        HStack(alignment: .center, spacing: 5) {
+            Image(systemName: self.imageName)
+                .font(.system(size: 14))
+                .foregroundStyle(imageColor)
+
+            Text(torrent.name)
+                .foregroundStyle(torrent.state == .pausedDL || torrent.state == .pausedUP ? .secondary : .primary)
+        }
+        .help(torrent.name)
     }
 }
 
@@ -299,7 +343,9 @@ struct LoginView: View {
             speedDown: 0,
             speedUp: 1490124,
             category: "Linux",
-            addedOn: Date(timeIntervalSince1970: 1710550279)),
+            addedOn: Date(timeIntervalSince1970: 1710550279),
+            state: .uploading
+        ),
         "2aa4f5a7e209e54b32803d43670971c4c8caaa05": Torrent(
             hash: "2aa4f5a7e209e54b32803d43670971c4c8caaa05",
             name: "ubuntu-24.04-desktop-amd64.iso",
@@ -309,7 +355,21 @@ struct LoginView: View {
             speedDown: 2222981,
             speedUp: 198453,
             category: "Linux",
-            addedOn: Date(timeIntervalSince1970: 1715512279)),
+            addedOn: Date(timeIntervalSince1970: 1715512279),
+            state: .downloading
+        ),
+        "0852ef544a4694995fcbef7132477c688ded7d9a": Torrent(
+            hash: "0852ef544a4694995fcbef7132477c688ded7d9a",
+            name: "wikidata-20240101-all.json.gz",
+            progress: 0,
+            size: 0,
+            ratio: 0,
+            speedDown: 0,
+            speedUp: 0,
+            category: "Not Linux",
+            addedOn: Date(timeIntervalSince1970: 1715514390),
+            state: .stalledDL
+        ),
     ]
     client.connectionStatus = .connected
     client.downloadSpeed = client.torrents.reduce(0) { $0 + $1.value.speedDown }
