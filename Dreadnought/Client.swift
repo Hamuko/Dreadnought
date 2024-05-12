@@ -17,17 +17,21 @@ struct Torrent: Identifiable {
     var speedDown: Int64
     var speedUp: Int64
     var category: String
+    var addedOn: Date
 
     var id: String { hash }
 
-    init(hash: String,
-         name: String,
-         progress: Double,
-         size: Int64,
-         ratio: Double,
-         speedDown:Int64,
-         speedUp:Int64,
-         category: String) {
+    init(
+        hash: String,
+        name: String,
+        progress: Double,
+        size: Int64,
+        ratio: Double,
+        speedDown:Int64,
+        speedUp:Int64,
+        category: String,
+        addedOn: Date
+    ) {
         self.hash = hash
         self.name = name
         self.progress = progress
@@ -36,6 +40,7 @@ struct Torrent: Identifiable {
         self.speedDown = speedDown
         self.speedUp = speedUp
         self.category = category
+        self.addedOn = addedOn
     }
 
     init(hash: String, data: TorrentData) {
@@ -47,6 +52,7 @@ struct Torrent: Identifiable {
         self.speedDown = Int64(data.dlspeed!)
         self.speedUp = Int64(data.upspeed!)
         self.category = data.category!
+        self.addedOn = Date(timeIntervalSince1970: TimeInterval(data.addedOn!))
     }
 
     mutating func update(data: TorrentData) {

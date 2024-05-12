@@ -111,6 +111,10 @@ struct TorrentView: View {
                     TableColumn("Category", value: \.category) { torrent in
                         Text(torrent.category)
                     }
+                    TableColumn("Added on", value: \.addedOn) { torrent in
+                        Text(torrent.addedOn, format: .dateTime)
+                            .help(torrent.addedOn.formatted(.relative(presentation: .numeric, unitsStyle: .wide)))
+                    }
                 }
                 .onKeyPress(.escape) {
                     DispatchQueue.main.async {
@@ -294,7 +298,8 @@ struct LoginView: View {
             ratio: 2.09,
             speedDown: 0,
             speedUp: 1490124,
-            category: "Linux"),
+            category: "Linux",
+            addedOn: Date(timeIntervalSince1970: 1710550279)),
         "2aa4f5a7e209e54b32803d43670971c4c8caaa05": Torrent(
             hash: "2aa4f5a7e209e54b32803d43670971c4c8caaa05",
             name: "ubuntu-24.04-desktop-amd64.iso",
@@ -303,7 +308,8 @@ struct LoginView: View {
             ratio: 0.13,
             speedDown: 2222981,
             speedUp: 198453,
-            category: "Linux"),
+            category: "Linux",
+            addedOn: Date(timeIntervalSince1970: 1715512279)),
     ]
     client.connectionStatus = .connected
     client.downloadSpeed = client.torrents.reduce(0) { $0 + $1.value.speedDown }

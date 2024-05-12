@@ -39,7 +39,7 @@ struct TorrentData: Decodable {
     let dlspeed: Int?
     let upspeed: Int?
     let category: String?
-    let addedOn: Date?
+    let addedOn: Int?
 
     enum CodingKeys: String, CodingKey {
         case name
@@ -61,11 +61,7 @@ struct TorrentData: Decodable {
         dlspeed = (try? values.decode(Int.self, forKey: .dlspeed))
         upspeed = (try? values.decode(Int.self, forKey: .upspeed))
         category = (try? values.decode(String.self, forKey: .category))
-        if let addedOnTimestamp = try? values.decode(Int.self, forKey: .addedOn) {
-            addedOn = Date(timeIntervalSince1970: TimeInterval(addedOnTimestamp))
-        } else {
-            addedOn = nil
-        }
+        addedOn = try? values.decode(Int.self, forKey: .addedOn)
     }
 }
 
