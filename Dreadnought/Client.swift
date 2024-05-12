@@ -59,6 +59,9 @@ struct Torrent: Identifiable {
         if let progress = data.progress {
             self.progress = progress
         }
+        if let size = data.size {
+            self.size = Int64(size)
+        }
         if let ratio = data.ratio {
             self.ratio = ratio
         }
