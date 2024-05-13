@@ -28,7 +28,7 @@ struct ProgressFormatStyle: FormatStyle {
         if value == 1 {
             return "100%"
         }
-        return String(format: "%.1f%%", value * 100)
+        return String(format: "%.1f%%", (value * 1000).rounded(.down) / 10)
     }
 }
 
