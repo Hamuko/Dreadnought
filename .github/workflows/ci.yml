@@ -1,0 +1,32 @@
+name: CI/CD
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build release
+    runs-on: macos-latest
+    env:
+      CONFIGURATION: Release
+      PROJECT: Dreadnought.xcodeproj
+      SCHEME: Dreadnought
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          xcodebuild clean build analyze -project $PROJECT -scheme $SCHEME -configuration $CONFIGURATION -derivedDataPath build | xcpretty && exit ${PIPESTATUS[0]}
+      - name: Compress
+        run: |
+          mkdir -p ./artifacts
+          brew install gnu-tar
+          export PATH="$(brew --prefix gnu-tar)/libexec/gnubin:$PATH"
+          tar -czf ./artifacts/Dreadnought.tar.gz -C ./build/Build/Products/$CONFIGURATION/ Dreadnought.app
+      - name: Archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-build
+          path: |
+            ./artifacts
