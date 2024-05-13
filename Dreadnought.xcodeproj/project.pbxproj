@@ -20,6 +20,7 @@
 		81C68B832BEC150D004DC215 /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C68B822BEC150D004DC215 /* Formatting.swift */; };
 		81C68B852BECD382004DC215 /* ClientData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C68B842BECD382004DC215 /* ClientData.swift */; };
 		81C68B872BECF799004DC215 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C68B862BECF799004DC215 /* Logging.swift */; };
+		81D7B2E62BF2670900D30F35 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 81D7B2E52BF2670900D30F35 /* Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 		81C68B822BEC150D004DC215 /* Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatting.swift; sourceTree = "<group>"; };
 		81C68B842BECD382004DC215 /* ClientData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientData.swift; sourceTree = "<group>"; };
 		81C68B862BECF799004DC215 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
+		81D7B2E52BF2670900D30F35 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,6 +110,7 @@
 			isa = PBXGroup;
 			children = (
 				81B695E52BE58E2C00F6526E /* Dreadnought.entitlements */,
+				81D7B2E52BF2670900D30F35 /* Info.plist */,
 				81B696072BE6469F00F6526E /* Client.swift */,
 				81C68B842BECD382004DC215 /* ClientData.swift */,
 				8193BDDC2BF005CC001E9496 /* Constants.swift */,
@@ -253,6 +256,7 @@
 			files = (
 				81B695E42BE58E2B00F6526E /* Preview Assets.xcassets in Resources */,
 				81B695E12BE58E2B00F6526E /* Assets.xcassets in Resources */,
+				81D7B2E62BF2670900D30F35 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -453,7 +457,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Dreadnought/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Dreadnought/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -482,7 +486,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Dreadnought/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Dreadnought/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -504,7 +508,6 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.4;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = moe.hamuko.DreadnoughtTests;
@@ -522,7 +525,6 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.4;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = moe.hamuko.DreadnoughtTests;
@@ -539,7 +541,6 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = moe.hamuko.DreadnoughtUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -555,7 +556,6 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = moe.hamuko.DreadnoughtUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
