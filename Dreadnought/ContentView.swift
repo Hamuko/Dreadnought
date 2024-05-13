@@ -37,6 +37,8 @@ extension CategoryFilter: Equatable {
 struct TorrentView: View {
     @EnvironmentObject var client: TorrentClient
 
+    @AppStorage("TorrentView.columns") private var columnCustomization: TableColumnCustomization<Torrent>
+
     @State private var selectedTorrents = TorrentSelection()
     @State private var sortOrder = [KeyPathComparator(\Torrent.name)]
     @State private var categoryFilter = CategoryFilter.all
@@ -74,49 +76,58 @@ struct TorrentView: View {
             }.font(.system(size: 11))
         } detail: {
             VStack(spacing: 0) {
-                Table(visibleTorrents, selection: $selectedTorrents, sortOrder: $sortOrder) {
+                Table(visibleTorrents, selection: $selectedTorrents, sortOrder: $sortOrder, columnCustomization: $columnCustomization) {
                     TableColumn("Name", value: \.name) { torrent in
                         TorrentName(torrent: torrent)
                     }
+                    .customizationID("name")
 
                     TableColumn("Progress") { torrent in
                         Text(torrent.progress, format: ProgressFormatStyle())
                     }
-                    .width(55)
+                    .width(ideal: 55)
                     .alignment(.center)
+                    .customizationID("progress")
 
                     TableColumn("Size", value: \.size) { torrent in
                         Text(torrent.size, format: FilesizeFormatStyle())
                     }
-                    .width(60)
+                    .width(ideal: 60)
                     .alignment(.trailing)
+                    .customizationID("size")
 
                     TableColumn("Download") { torrent in
                         Text(torrent.speedDown, format: TransferSpeedFormatStyle())
                             .foregroundStyle(torrent.speedDown == 0 ? .gray : .primary)
                     }
-                    .width(70)
+                    .width(ideal: 70)
                     .alignment(.trailing)
+                    .customizationID("downloadSpeed")
 
                     TableColumn("Upload") { torrent in
                         Text(torrent.speedUp, format: TransferSpeedFormatStyle())
                             .foregroundStyle(torrent.speedUp == 0 ? .gray : .primary)
                     }
-                    .width(70)
+                    .width(ideal: 70)
                     .alignment(.trailing)
+                    .customizationID("uploadSpeed")
 
                     TableColumn("Ratio", value: \.ratio) { torrent in
                         Text(torrent.ratio, format: RatioFormatStyle())
                     }
-                    .width(50)
+                    .width(ideal: 50)
+                    .customizationID("ratio")
                     
                     TableColumn("Category", value: \.category) { torrent in
                         Text(torrent.category)
                     }
+                    .customizationID("category")
+
                     TableColumn("Added on", value: \.addedOn) { torrent in
                         Text(torrent.addedOn, format: .dateTime)
                             .help(torrent.addedOn.formatted(.relative(presentation: .numeric, unitsStyle: .wide)))
                     }
+                    .customizationID("addedOn")
                 }
                 .onKeyPress(.escape) {
                     DispatchQueue.main.async {
