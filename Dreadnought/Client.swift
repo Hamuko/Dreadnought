@@ -223,17 +223,24 @@ class TorrentClient: ObservableObject {
     func processMainData(mainData: MainData) {
         self.rid = mainData.rid
 
-        let newCategories: Set<String> = mainData.categories?.keys.reduce(into: []) { (result, category) in
+        let categoryUpdate: Set<String> = mainData.categories?.keys.reduce(into: []) { (result, category) in
             result.insert(category)
         } ?? []
+        var torrentUpdate: [String: Torrent] = [:]
 
-        var updates: [String: Torrent] = [:]
-        for (hash, data) in mainData.torrents {
-            if var torrent = self.torrents[hash] {
-                torrent.update(data: data)
-                updates[hash] = torrent
-            } else {
-                updates[hash] = Torrent(hash: hash, data: data)
+        if mainData.fullUpdate {
+            Logger.torrentClient.info("Received a full update")
+            torrentUpdate = mainData.torrents.reduce(into: [:]) { (result, element) in
+                result[element.key] = Torrent(hash: element.key, data: element.value)
+            }
+        } else {
+            for (hash, data) in mainData.torrents {
+                if var torrent = self.torrents[hash] {
+                    torrent.update(data: data)
+                    torrentUpdate[hash] = torrent
+                } else {
+                    torrentUpdate[hash] = Torrent(hash: hash, data: data)
+                }
             }
         }
 
@@ -245,11 +252,18 @@ class TorrentClient: ObservableObject {
                 self.connectionStatus = connectionStatus
             }
 
-            self.categories.formUnion(newCategories)
+            if mainData.fullUpdate {
+                // Full updates need to completely replace the existing data or already-removed items may be retained.
+                self.categories = categoryUpdate
+                self.torrents = torrentUpdate
+            } else {
+                self.categories.formUnion(categoryUpdate)
 
-            self.torrents.merge(updates) { _, new in new }
-            for hash in mainData.torrentsRemoved {
-                self.torrents.removeValue(forKey: hash)
+                self.torrents.merge(torrentUpdate) { _, new in new }
+                for hash in mainData.torrentsRemoved {
+                    Logger.torrentClient.debug("Removing torrent \(hash)")
+                    self.torrents.removeValue(forKey: hash)
+                }
             }
         }
     }

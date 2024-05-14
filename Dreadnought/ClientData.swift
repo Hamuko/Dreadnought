@@ -6,6 +6,7 @@ struct MainData: Decodable {
     let torrentsRemoved: [String]
     let rid: Int
     let serverState: ServerState
+    let fullUpdate: Bool
     
     enum CodingKeys: String, CodingKey {
         case categories
@@ -13,6 +14,7 @@ struct MainData: Decodable {
         case torrentsRemoved = "torrents_removed"
         case rid
         case serverState = "server_state"
+        case fullUpdate = "full_update"
     }
     
     init(from decoder: any Decoder) throws {
@@ -22,6 +24,7 @@ struct MainData: Decodable {
         torrentsRemoved = (try? values.decode([String].self, forKey: .torrentsRemoved)) ?? []
         rid = try values.decode(Int.self, forKey: .rid)
         serverState = try values.decode(ServerState.self, forKey: .serverState)
+        fullUpdate = (try? values.decode(Bool.self, forKey: .fullUpdate)) ?? false
     }
 
     static func decode(from: Data) -> Self? {
