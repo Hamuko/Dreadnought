@@ -2,6 +2,27 @@ import SwiftUI
 
 typealias TorrentSelection = Set<Torrent.ID>
 
+enum Filter: Hashable {
+    case category(CategoryFilter)
+    case state(StateFilter)
+}
+
+enum StateFilter: String, CaseIterable, Hashable {
+    case all = "All"
+    case downloading = "Downloading"
+    case seeding = "Seeding"
+    case completed = "Completed"
+    case resumed = "Resumed"
+    case paused = "Paused"
+    case active = "Active"
+    case inactive = "Inactive"
+    case stalled = "Stalled"
+    case stalledDL = "Stalled downloading"
+    case stalledUP = "Stalled seeding"
+    case checking = "Checking"
+    case errored = "Errored"
+}
+
 enum CategoryFilter {
     case all
     case none
@@ -34,127 +55,220 @@ extension CategoryFilter: Equatable {
     }
 }
 
+struct StatusNavigationLink: View {
+    var state: StateFilter
+
+    var imageName: String {
+        switch state {
+            case .all: "shuffle"
+            case .downloading: "arrow.down"
+            case .seeding: "arrow.up"
+            case .completed: "checkmark"
+            case .resumed: "play"
+            case .paused: "pause"
+            case .active, .inactive, .stalled: "arrow.up.arrow.down"
+            case .stalledDL: "arrow.down"
+            case .stalledUP: "arrow.up"
+            case .checking: "arrow.triangle.2.circlepath"
+            case .errored: "exclamationmark.triangle.fill"
+        }
+    }
+
+    var body: some View {
+        NavigationLink(value: Filter.state(state)) {
+            HStack(alignment: .center, spacing: 5) {
+                Image(systemName: imageName).fontWeight(.bold).frame(width: 20, alignment: .center)
+                Text(state.rawValue)
+            }
+        }
+    }
+}
+
 struct TorrentView: View {
     @EnvironmentObject var client: TorrentClient
 
+    @State var categoryFilter = CategoryFilter.all
+    @State var stateFilter = StateFilter.all
+
+    var needsAuthentication: Bool { client.authenticationState != .authenticated }
+
+    var body: some View {
+        let torrentView = TorrentList(categoryFilter: $categoryFilter, stateFilter: $stateFilter)
+            .environmentObject(client)
+
+        let selectedFilters = Binding<Set<Filter>>(get: {
+            [Filter.category(categoryFilter), Filter.state(stateFilter)]
+        }, set: { newFilter in
+            switch newFilter.first {
+                case .category(let category):
+                    self.categoryFilter = category
+                case .state(let state):
+                    self.stateFilter = state
+                case .none: break
+            }
+        })
+
+        NavigationSplitView {
+            List(selection: selectedFilters) {
+                Section(header: Text("Status")) {
+                    ForEach(StateFilter.allCases, id: \.self) { state in
+                        StatusNavigationLink(state: state)
+                    }
+                }
+                Section(header: Text("Categories")) {
+                    NavigationLink(value: Filter.category(CategoryFilter.all)) {
+                        Text("All")
+                    }
+                    NavigationLink(value: Filter.category(CategoryFilter.none)) {
+                        Text("Uncategorized")
+                    }
+                    ForEach(client.categories.sorted(), id: \.self) { category in
+                        NavigationLink(value: Filter.category(CategoryFilter.specific(category))) {
+                            Text(category)
+                        }
+                    }
+                }
+            }
+        } detail: {
+            torrentView
+        }.sheet(isPresented: $client.authenticationState.needsAuthentication, content: {
+            LoginView().environmentObject(client)
+        })
+    }
+}
+
+struct TorrentList: View {
+    @EnvironmentObject var client: TorrentClient
+    
     @AppStorage("TorrentView.columns") private var columnCustomization: TableColumnCustomization<Torrent>
 
     @State private var selectedTorrents = TorrentSelection()
     @State private var sortOrder = [KeyPathComparator(\Torrent.name)]
-    @State private var categoryFilter = CategoryFilter.all
-    
-    var needsAuthentication: Bool { client.authenticationState != .authenticated }
+
+    @Binding var categoryFilter: CategoryFilter
+    @Binding var stateFilter: StateFilter
 
     var visibleTorrents: [Torrent] {
         client.torrents.compactMap { (hash: String, torrent: Torrent) in torrent }
             .filter { torrent in
+                switch stateFilter {
+                    case .all:
+                        true
+                    case .downloading:
+                        torrent.state == .downloading
+                    case .seeding:
+                        torrent.state == .uploading
+                    case .completed:
+                        torrent.progress == 1.0
+                    case .resumed:
+                        torrent.state != .pausedDL && torrent.state != .pausedUP
+                    case .paused:
+                        torrent.state == .pausedDL || torrent.state == .pausedUP
+                    case .active:
+                        torrent.speedDown != 0 || torrent.speedUp != 0
+                    case .inactive:
+                        torrent.speedDown == 0 && torrent.speedUp == 0
+                    case .stalled:
+                        torrent.state == .stalledDL || torrent.state == .stalledUP
+                    case .stalledDL:
+                        torrent.state == .stalledDL
+                    case .stalledUP:
+                        torrent.state == .stalledUP
+                    case .checking:
+                        torrent.state == .checkingResumeData || torrent.state == .checkingDL || torrent.state == .checkingUP
+                    case .errored:
+                        torrent.state == .error
+                }
+            }
+            .filter { torrent in
                 switch categoryFilter {
-                    case .all: true
-                    case .none: torrent.category == ""
-                    case .specific(let category): torrent.category == category
+                case .all: true
+                case .none: torrent.category == ""
+                case .specific(let category): torrent.category == category
                 }
             }
             .sorted(using: sortOrder)
     }
 
     var body: some View {
-        NavigationSplitView {
-            List(selection: $categoryFilter) {
-                Section(header: Text("Categories")) {
-                    NavigationLink(value: CategoryFilter.all) {
-                        Text("All")
-                    }
-                    NavigationLink(value: CategoryFilter.none) {
-                        Text("Uncategorized")
-                    }
-                    ForEach(client.categories.sorted(), id: \.self) { category in
-                        NavigationLink(value: CategoryFilter.specific(category)) {
-                            Text(category)
-                        }
-                    }
+        VStack(spacing: 0) {
+            Table(visibleTorrents, selection: $selectedTorrents, sortOrder: $sortOrder, columnCustomization: $columnCustomization) {
+                TableColumn("Name", value: \.name) { torrent in
+                    TorrentName(torrent: torrent)
                 }
-            }.font(.system(size: 11))
-        } detail: {
-            VStack(spacing: 0) {
-                Table(visibleTorrents, selection: $selectedTorrents, sortOrder: $sortOrder, columnCustomization: $columnCustomization) {
-                    TableColumn("Name", value: \.name) { torrent in
-                        TorrentName(torrent: torrent)
-                    }
-                    .customizationID("name")
+                .customizationID("name")
 
-                    TableColumn("Progress") { torrent in
-                        Text(torrent.progress, format: ProgressFormatStyle())
-                    }
-                    .width(ideal: 55)
-                    .alignment(.center)
-                    .customizationID("progress")
-
-                    TableColumn("Size", value: \.size) { torrent in
-                        Text(torrent.size, format: FilesizeFormatStyle())
-                    }
-                    .width(ideal: 60)
-                    .alignment(.trailing)
-                    .customizationID("size")
-
-                    TableColumn("Download") { torrent in
-                        Text(torrent.speedDown, format: TransferSpeedFormatStyle())
-                            .foregroundStyle(torrent.speedDown == 0 ? .gray : .primary)
-                    }
-                    .width(ideal: 70)
-                    .alignment(.trailing)
-                    .customizationID("downloadSpeed")
-
-                    TableColumn("Upload") { torrent in
-                        Text(torrent.speedUp, format: TransferSpeedFormatStyle())
-                            .foregroundStyle(torrent.speedUp == 0 ? .gray : .primary)
-                    }
-                    .width(ideal: 70)
-                    .alignment(.trailing)
-                    .customizationID("uploadSpeed")
-
-                    TableColumn("Ratio", value: \.ratio) { torrent in
-                        Text(torrent.ratio, format: RatioFormatStyle())
-                    }
-                    .width(ideal: 50)
-                    .customizationID("ratio")
-                    
-                    TableColumn("Category", value: \.category) { torrent in
-                        Text(torrent.category)
-                    }
-                    .customizationID("category")
-
-                    TableColumn("Added on", value: \.addedOn) { torrent in
-                        Text(torrent.addedOn, format: .dateTime)
-                            .help(torrent.addedOn.formatted(.relative(presentation: .numeric, unitsStyle: .wide)))
-                    }
-                    .customizationID("addedOn")
+                TableColumn("Progress") { torrent in
+                    Text(torrent.progress, format: ProgressFormatStyle())
                 }
-                .onKeyPress(.escape) {
-                    DispatchQueue.main.async {
-                        self.selectedTorrents.removeAll()
-                        client.objectWillChange.send()
-                    }
-                    return .handled
+                .width(ideal: 55)
+                .alignment(.center)
+                .customizationID("progress")
+
+                TableColumn("Size", value: \.size) { torrent in
+                    Text(torrent.size != 0 ? FilesizeFormatStyle().format(torrent.size) : "–")
+                        .foregroundStyle(torrent.size != 0 ? .primary : .secondary)
                 }
-                .frame(maxHeight: .infinity, alignment: .bottomLeading)
-                Divider()
-                HStack {
-                    Spacer()
-                    Divider().frame(height: 28)
-                    ConnectionStatusIndicator(status: client.connectionStatus)
-                    Divider().frame(height: 28)
-                    SessionTransferInfo(speed: client.downloadSpeed) {
-                        Image(systemName: "arrow.down").foregroundStyle(.secondary)
-                    }
-                    SessionTransferInfo(speed: client.uploadSpeed) {
-                        Image(systemName: "arrow.up").foregroundStyle(.secondary)
-                    }
+                .width(ideal: 60)
+                .alignment(.trailing)
+                .customizationID("size")
+
+                TableColumn("Download") { torrent in
+                    Text(torrent.speedDown, format: TransferSpeedFormatStyle())
+                        .foregroundStyle(torrent.speedDown == 0 ? .gray : .primary)
                 }
-                .padding(.horizontal, 15)
+                .width(ideal: 70)
+                .alignment(.trailing)
+                .customizationID("downloadSpeed")
+
+                TableColumn("Upload") { torrent in
+                    Text(torrent.speedUp, format: TransferSpeedFormatStyle())
+                        .foregroundStyle(torrent.speedUp == 0 ? .gray : .primary)
+                }
+                .width(ideal: 70)
+                .alignment(.trailing)
+                .customizationID("uploadSpeed")
+
+                TableColumn("Ratio", value: \.ratio) { torrent in
+                    Text(torrent.ratio, format: RatioFormatStyle())
+                }
+                .width(ideal: 50)
+                .customizationID("ratio")
+                
+                TableColumn("Category", value: \.category) { torrent in
+                    Text(torrent.category)
+                }
+                .customizationID("category")
+
+                TableColumn("Added on", value: \.addedOn) { torrent in
+                    Text(torrent.addedOn, format: .dateTime)
+                        .help(torrent.addedOn.formatted(.relative(presentation: .numeric, unitsStyle: .wide)))
+                }
+                .customizationID("addedOn")
             }
-        }.sheet(isPresented: $client.authenticationState.needsAuthentication, content: {
-            LoginView().environmentObject(client)
-        })
+            .onKeyPress(.escape) {
+                DispatchQueue.main.async {
+                    self.selectedTorrents.removeAll()
+                    client.objectWillChange.send()
+                }
+                return .handled
+            }
+            .frame(maxHeight: .infinity, alignment: .bottomLeading)
+            Divider()
+            HStack {
+                Spacer()
+                Divider().frame(height: 28)
+                ConnectionStatusIndicator(status: client.connectionStatus)
+                Divider().frame(height: 28)
+                SessionTransferInfo(speed: client.downloadSpeed) {
+                    Image(systemName: "arrow.down").foregroundStyle(.secondary)
+                }
+                SessionTransferInfo(speed: client.uploadSpeed) {
+                    Image(systemName: "arrow.up").foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 15)
+        }
     }
 }
 
@@ -341,7 +455,7 @@ struct LoginView: View {
     }
 }
 
-#Preview(traits: .fixedLayout(width: 900, height: 500) ) {
+#Preview(traits: .fixedLayout(width: 950, height: 600) ) {
     let client = TorrentClient()
     client.categories = ["Linux", "Not Linux"]
     client.torrents = [
