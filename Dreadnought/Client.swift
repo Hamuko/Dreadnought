@@ -244,7 +244,7 @@ class TorrentClient: ObservableObject {
             }
         }
 
-        DispatchQueue.main.async {
+        RunLoop.main.perform {
             self.downloadSpeed = mainData.serverState.downloadSpeed
             self.uploadSpeed = mainData.serverState.uploadSpeed
 
