@@ -66,9 +66,11 @@ struct StatusNavigationLink: View {
             case .completed: "checkmark"
             case .resumed: "play"
             case .paused: "pause"
-            case .active, .inactive, .stalled: "arrow.up.arrow.down"
-            case .stalledDL: "arrow.down"
-            case .stalledUP: "arrow.up"
+            case .active: "arrow.up.arrow.down"
+            case .inactive: "clock.arrow.2.circlepath"
+            case .stalled: "arrow.down.left.arrow.up.right"
+            case .stalledDL: "arrow.down.left"
+            case .stalledUP: "arrow.up.right"
             case .checking: "arrow.triangle.2.circlepath"
             case .errored: "exclamationmark.triangle.fill"
         }
@@ -77,7 +79,10 @@ struct StatusNavigationLink: View {
     var body: some View {
         NavigationLink(value: Filter.state(state)) {
             HStack(alignment: .center, spacing: 5) {
-                Image(systemName: imageName).fontWeight(.bold).frame(width: 20, alignment: .center)
+                Image(systemName: imageName)
+                    .fontWeight(.medium)
+                    .font(.system(size: 14))
+                    .frame(width: 19, alignment: .center)
                 Text(state.rawValue)
             }
         }
