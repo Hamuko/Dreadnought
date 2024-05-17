@@ -201,12 +201,13 @@ struct TorrentList: View {
                 TableColumn("Name", value: \.name) { torrent in
                     TorrentName(torrent: torrent)
                 }
+                .width(min: 1)
                 .customizationID("name")
 
-                TableColumn("Progress") { torrent in
+                TableColumn("Progress", value: \.progress) { torrent in
                     Text(torrent.progress, format: ProgressFormatStyle())
                 }
-                .width(ideal: 55)
+                .width(min: 1)
                 .alignment(.center)
                 .customizationID("progress")
 
@@ -214,41 +215,44 @@ struct TorrentList: View {
                     Text(torrent.size != 0 ? FilesizeFormatStyle().format(torrent.size) : "–")
                         .foregroundStyle(torrent.size != 0 ? .primary : .secondary)
                 }
-                .width(ideal: 60)
+                .width(min: 1)
                 .alignment(.trailing)
                 .customizationID("size")
 
-                TableColumn("Download") { torrent in
+                TableColumn("Download", value: \.speedDown) { torrent in
                     Text(torrent.speedDown, format: TransferSpeedFormatStyle())
                         .foregroundStyle(torrent.speedDown == 0 ? .gray : .primary)
                 }
-                .width(ideal: 70)
+                .width(min: 1)
                 .alignment(.trailing)
                 .customizationID("downloadSpeed")
 
-                TableColumn("Upload") { torrent in
+                TableColumn("Upload", value: \.speedUp) { torrent in
                     Text(torrent.speedUp, format: TransferSpeedFormatStyle())
                         .foregroundStyle(torrent.speedUp == 0 ? .gray : .primary)
                 }
-                .width(ideal: 70)
+                .width(min: 1)
                 .alignment(.trailing)
                 .customizationID("uploadSpeed")
 
                 TableColumn("Ratio", value: \.ratio) { torrent in
                     Text(torrent.ratio, format: RatioFormatStyle())
                 }
-                .width(ideal: 50)
+                .width(min: 1)
+                .alignment(.trailing)
                 .customizationID("ratio")
                 
                 TableColumn("Category", value: \.category) { torrent in
                     Text(torrent.category)
                 }
+                .width(min: 1)
                 .customizationID("category")
 
                 TableColumn("Added on", value: \.addedOn) { torrent in
                     Text(torrent.addedOn, format: .dateTime)
                         .help(torrent.addedOn.formatted(.relative(presentation: .numeric, unitsStyle: .wide)))
                 }
+                .width(min: 1)
                 .customizationID("addedOn")
             }
             .onKeyPress(.escape) {
