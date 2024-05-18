@@ -255,6 +255,19 @@ struct TorrentList: View {
                 .width(min: 1)
                 .customizationID("addedOn")
             }
+            .contextMenu(forSelectionType: Torrent.ID.self) { items in
+                Menu("Category") {
+                    Button("Reset") {
+                        client.setCategory(hashes: items, category: "")
+                    }
+                    Divider()
+                    ForEach(client.categories.sorted(), id: \.self) { category in
+                        Button(category) {
+                            client.setCategory(hashes: items, category: category)
+                        }
+                    }
+                }
+            }
             .onKeyPress(.escape) {
                 DispatchQueue.main.async {
                     self.selectedTorrents.removeAll()

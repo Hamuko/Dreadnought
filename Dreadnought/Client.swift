@@ -271,4 +271,20 @@ class TorrentClient: ObservableObject {
             }
         }
     }
+    
+    func setCategory(hashes: Set<String>, category: String) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/setCategory"), let cookie = self.cookies else {
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let parameters = ["hashes": hashes.joined(separator: "|"), "category": category]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
+            switch response.response?.statusCode {
+                case 200: Logger.torrentClient.info("Successfully set category to \"\(category)\"")
+                case 400: Logger.torrentClient.error("Unknown error while setting category")
+                case 409: Logger.torrentClient.warning("No such category \"\(category)\"")
+                default: break
+            }
+        }
+    }
 }
