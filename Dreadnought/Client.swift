@@ -1,6 +1,7 @@
 import Foundation
 import CryptoKit
 import OSLog
+import Alamofire
 
 enum ConnectionStatus {
     case connected
@@ -113,35 +114,34 @@ class TorrentClient: ObservableObject {
     private var rid = 0
     private var keepUpdating = true
     private var updateTask: Task<Void, Never>?
-    
+
     /// Get a session cookie.
     func auth(username: String, password: String) {
         guard let url = self.baseURL?.appending(path: "api/v2/auth/login") else {
             return
         }
+        Logger.torrentClient.debug("Authenticating on \(url)")
         DispatchQueue.main.async {
             self.authenticationState = .authenticating
         }
-        var request = URLRequest(url: url)
-        request.httpBody = "username=\(username)&password=\(password)".data(using: .utf8)
-        request.httpMethod = "POST"
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 403 {
+        let parameters = ["username": username, "password": password]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default).response { response in
+            if let response = response.response {
+                if response.statusCode == 403 {
                     Logger.torrentClient.error("User is IP banned for too many failed attempts")
                     DispatchQueue.main.async {
                         self.authenticationState = .banned
                     }
                     return
                 }
-                if let cookie = httpResponse.value(forHTTPHeaderField: "Set-Cookie") {
+                if let cookie = response.headers["Set-Cookie"] {
                     self.cookies = cookie.components(separatedBy: ";")[0]
                     self.start()
+                    UserDefaults.standard.setValue(self.cookies, forKey: PreferenceNames.clientCookie)
+                    UserDefaults.standard.setValue(self.baseURL?.absoluteString, forKey: PreferenceNames.serverURL)
                     DispatchQueue.main.async {
                         self.authenticationState = .authenticated
                     }
-                    UserDefaults.standard.setValue(self.cookies, forKey: PreferenceNames.clientCookie)
-                    UserDefaults.standard.setValue(self.baseURL?.absoluteString, forKey: PreferenceNames.serverURL)
                     return
                 }
             }
@@ -149,10 +149,8 @@ class TorrentClient: ObservableObject {
                 self.authenticationState = .unauthenticated
             }
         }
-        Logger.torrentClient.debug("Authenticating on \(url)")
-        task.resume()
     }
-    
+
     func loadPreferences() {
         if let clientCookie = UserDefaults.standard.string(forKey: PreferenceNames.clientCookie) {
             Logger.torrentClient.debug("Loaded client cookie from preferences.")
@@ -178,32 +176,38 @@ class TorrentClient: ObservableObject {
 
     func fetchData() async {
         Logger.torrentClient.debug("Fetching main data from server")
-        do {
-            guard let request = self.mainDataRequest() else {
+        guard let url = baseURL?.appending(path: "api/v2/sync/maindata"), let cookie = self.cookies else {
+            self.keepUpdating = false
+            DispatchQueue.main.async {
+                self.authenticationState = .unauthenticated
+            }
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let response = await AF.request(url, parameters: ["rid": self.rid], headers: headers)
+            .serializingDecodable(MainData.self)
+            .response
+
+        if let error = response.error {
+            Logger.torrentClient.fault("Received error on update: \(error)")
+            return
+        }
+
+        if let httpResponse = response.response {
+            if httpResponse.statusCode == 403 {
+                Logger.torrentClient.error("Not authenticated")
                 self.keepUpdating = false
                 DispatchQueue.main.async {
                     self.authenticationState = .unauthenticated
                 }
-                return
             }
-            let (data, response) = try await URLSession.shared.data(for: request)
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 403 {
-                    Logger.torrentClient.error("Not authenticated")
-                    self.keepUpdating = false
-                    DispatchQueue.main.async {
-                        self.authenticationState = .unauthenticated
-                    }
-                }
-            }
+        }
 
-            guard let mainData = MainData.decode(from: data) else {
-                Logger.torrentClient.error("Could not decode main data")
-                return
-            }
-            self.processMainData(mainData: mainData)
-        } catch {
-            Logger.torrentClient.fault("Received error on update: \(error)")
+        switch response.result {
+            case .success(let mainData):
+                self.processMainData(mainData: mainData)
+            case .failure(let error):
+                Logger.torrentClient.error("Could not decode main data: \(error)")
         }
     }
 
