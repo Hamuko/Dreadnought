@@ -151,6 +151,28 @@ class TorrentClient: ObservableObject {
         }
     }
 
+    /// Delete torrents from qBittorrent, optionally also deleting the files while at it.
+    func deleteTorrents(hashes: Set<String>, deleteFiles: Bool) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/delete"), let cookie = self.cookies else {
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let parameters = ["hashes": hashes.joined(separator: "|"), "deleteFiles": deleteFiles ? "true" : "false"]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
+            if let error = response.error {
+                Logger.torrentClient.info("Error when deleted torrent(s): \(error)")
+                return
+            }
+            if let httpResponse = response.response {
+                if httpResponse.statusCode == 200 {
+                    Logger.torrentClient.info("Successfully deleted torrent(s)")
+                } else {
+                    Logger.torrentClient.warning("Error deleted torrent(s) (HTTP \(httpResponse.statusCode)")
+                }
+            }
+        }
+    }
+
     func loadPreferences() {
         if let clientCookie = UserDefaults.standard.string(forKey: PreferenceNames.clientCookie) {
             Logger.torrentClient.debug("Loaded client cookie from preferences.")

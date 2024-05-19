@@ -147,8 +147,11 @@ struct TorrentList: View {
     
     @AppStorage("TorrentView.columns") private var columnCustomization: TableColumnCustomization<Torrent>
 
+    @State private var torrentsPendingConfirmation: Set<Torrent.ID>?
     @State private var selectedTorrents = TorrentSelection()
     @State private var sortOrder = [KeyPathComparator(\Torrent.name)]
+    @State private var showRemoveConfirmation: Bool = false
+    @State private var showDeleteConfirmation: Bool = false
 
     @Binding var categoryFilter: CategoryFilter
     @Binding var stateFilter: StateFilter
@@ -256,6 +259,17 @@ struct TorrentList: View {
                 .customizationID("addedOn")
             }
             .contextMenu(forSelectionType: Torrent.ID.self) { items in
+                Button("Remove", role: .destructive) {
+                    torrentsPendingConfirmation = items
+                    showRemoveConfirmation = true
+                }
+                Button("Remove and delete data", role: .destructive) {
+                    torrentsPendingConfirmation = items
+                    showDeleteConfirmation = true
+                }
+
+                Divider()
+
                 Menu("Category") {
                     Button("Reset") {
                         client.setCategory(hashes: items, category: "")
@@ -268,6 +282,18 @@ struct TorrentList: View {
                     }
                 }
             }
+            .confirmationDialog("Remove torrent?", isPresented: $showRemoveConfirmation) {
+                TorrentRemovalConfirmation(torrents: $torrentsPendingConfirmation, delete: false)
+            }
+            .dialogIcon(Image(systemName: "xmark.circle.fill"))
+            .dialogSeverity(.standard)
+
+            .confirmationDialog("Remove torrent and delete data?", isPresented: $showDeleteConfirmation) {
+                TorrentRemovalConfirmation(torrents: $torrentsPendingConfirmation, delete: true)
+            }
+            .dialogIcon(Image(systemName: "trash.circle.fill"))
+            .dialogSeverity(.critical)
+
             .onKeyPress(.escape) {
                 DispatchQueue.main.async {
                     self.selectedTorrents.removeAll()
@@ -290,6 +316,30 @@ struct TorrentList: View {
                 }
             }
             .padding(.horizontal, 15)
+        }
+    }
+}
+
+struct TorrentRemovalConfirmation : View {
+    @EnvironmentObject var client: TorrentClient
+
+    @Binding var torrents: Set<Torrent.ID>?
+
+    var delete: Bool
+
+    var buttonTitle: String {
+        delete ? "Remove and delete data" : "Remove"
+    }
+
+    var body : some View {
+        Button(buttonTitle, role: .destructive) {
+            if let torrents = torrents {
+                client.deleteTorrents(hashes: torrents, deleteFiles: delete)
+            }
+            torrents = nil
+        }
+        Button("Cancel", role: .cancel) {
+            torrents = nil
         }
     }
 }
