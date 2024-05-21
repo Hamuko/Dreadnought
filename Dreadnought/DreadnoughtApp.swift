@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 @main
 struct DreadnoughtApp: App {
@@ -16,6 +17,22 @@ struct DreadnoughtApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView().environmentObject(self.client)
+        }
+        .commands {
+            CommandGroup(before: .importExport) {
+                Button("Make default for magnet links", action: self.makeDefaultMagnetHandler)
+            }
+        }
+    }
+
+    /// Register Dreadnought as the default handler for magnet:// URIs.
+    func makeDefaultMagnetHandler() {
+        NSWorkspace.shared.setDefaultApplication(at: Bundle.main.bundleURL, toOpenURLsWithScheme: "magnet") { error in
+            if let error = error {
+                Logger.app.warning("Could not register as the default application for magnet URIs: \(error.localizedDescription)")
+            } else {
+                Logger.app.info("Registered as the default application for magnet URIs")
+            }
         }
     }
 }
