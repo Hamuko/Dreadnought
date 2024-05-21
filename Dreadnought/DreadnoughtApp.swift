@@ -15,9 +15,10 @@ struct DreadnoughtApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        Window("Dreadnought", id: "main") {
             ContentView().environmentObject(self.client)
         }
+        .keyboardShortcut("1", modifiers: .command)
         .commands {
             CommandGroup(before: .importExport) {
                 Button("Make default for magnet links", action: self.makeDefaultMagnetHandler)
