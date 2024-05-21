@@ -115,6 +115,32 @@ class TorrentClient: ObservableObject {
     private var keepUpdating = true
     private var updateTask: Task<Void, Never>?
 
+    func addTorrent(url torrentUrl: URL) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/add"), let cookie = self.cookies else {
+            return
+        }
+        guard let urlData = torrentUrl.absoluteString.data(using: .utf8) else {
+            Logger.torrentClient.error("Could not encode URL")
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        AF.upload(multipartFormData: { multipartFormData in
+            multipartFormData.append(urlData, withName: "urls")
+        }, to: url, headers: headers).response { response in
+            if let error = response.error {
+                Logger.torrentClient.info("Error when adding torrent: \(error)")
+                return
+            }
+            if let httpResponse = response.response {
+                if httpResponse.statusCode == 200 {
+                    Logger.torrentClient.info("Successfully added torrent")
+                } else {
+                    Logger.torrentClient.warning("Error adding torrent (HTTP \(httpResponse.statusCode)")
+                }
+            }
+        }
+    }
+
     /// Get a session cookie.
     func auth(username: String, password: String) {
         guard let url = self.baseURL?.appending(path: "api/v2/auth/login") else {
