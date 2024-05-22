@@ -9,86 +9,14 @@ enum ConnectionStatus {
     case disconnected
 }
 
-struct Torrent: Identifiable {
-    let hash: String
-    var size: Int64
-    var name: String
-    var progress: Double
-    var ratio: Double
-    var speedDown: Int64
-    var speedUp: Int64
-    var category: String
-    var addedOn: Date
-    var state: TorrentState
-
-    var id: String { hash }
-
-    init(
-        hash: String,
-        name: String,
-        progress: Double,
-        size: Int64,
-        ratio: Double,
-        speedDown:Int64,
-        speedUp:Int64,
-        category: String,
-        addedOn: Date,
-        state: TorrentState
-    ) {
-        self.hash = hash
-        self.name = name
-        self.progress = progress
-        self.size = size
-        self.ratio = ratio
-        self.speedDown = speedDown
-        self.speedUp = speedUp
-        self.category = category
-        self.addedOn = addedOn
-        self.state = state
-    }
-
-    init(hash: String, data: TorrentData) {
-        self.hash = hash
-        self.name = data.name!
-        self.progress = data.progress!
-        self.size = Int64(data.size!)
-        self.ratio = data.ratio!
-        self.speedDown = Int64(data.dlspeed!)
-        self.speedUp = Int64(data.upspeed!)
-        self.category = data.category!
-        self.addedOn = Date(timeIntervalSince1970: TimeInterval(data.addedOn!))
-        self.state = TorrentState.from(data.state!)
-    }
-
-    mutating func update(data: TorrentData) {
-        if let progress = data.progress {
-            self.progress = progress
-        }
-        if let size = data.size {
-            self.size = Int64(size)
-        }
-        if let ratio = data.ratio {
-            self.ratio = ratio
-        }
-        if let dlspeed = data.dlspeed {
-            self.speedDown = Int64(dlspeed)
-        }
-        if let upspeed = data.upspeed {
-            self.speedUp = Int64(upspeed)
-        }
-        if let category = data.category {
-            self.category = category
-        }
-        if let state = data.state {
-            self.state = TorrentState.from(state)
-        }
-    }
-}
-
 enum ClientAuthentication {
+    /// IP ban triggered by consecutive login failures.
     case banned
+    /// Missing a base URL and/or a valid cookie.
     case unauthenticated
+    /// Authentication request is currently under way.
     case authenticating
+    /// Client has a base URL and a valid cookie.
     case authenticated
 }
 
@@ -259,18 +187,6 @@ class TorrentClient: ObservableObject {
         }
     }
 
-    func mainDataRequest() -> URLRequest? {
-        guard let url = baseURL?.appending(path: "api/v2/sync/maindata") else {
-            return nil
-        }
-        let query = URLQueryItem(name: "rid", value: String(self.rid))
-        var request = URLRequest(url: url.appending(queryItems: [query]))
-        if let cookie = self.cookies {
-            request.allHTTPHeaderFields = ["Cookie": cookie]
-        }
-        return request
-    }
-
     /// Update client state from given main data.
     func processMainData(mainData: MainData) {
         self.rid = mainData.rid
@@ -319,7 +235,7 @@ class TorrentClient: ObservableObject {
             }
         }
     }
-    
+
     func setCategory(hashes: Set<String>, category: String) {
         guard let url = baseURL?.appending(path: "api/v2/torrents/setCategory"), let cookie = self.cookies else {
             return
