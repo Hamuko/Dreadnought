@@ -42,7 +42,22 @@ class TorrentClient: ObservableObject {
     private var rid = 0
     private var keepUpdating = true
     private var updateTask: Task<Void, Never>?
+    
+    private func addTorrentCallback(response: AFDataResponse<Data?>) {
+        if let error = response.error {
+            Logger.torrentClient.info("Error when adding torrent: \(error)")
+            return
+        }
+        if let httpResponse = response.response {
+            if httpResponse.statusCode == 200 {
+                Logger.torrentClient.info("Successfully added torrent")
+            } else {
+                Logger.torrentClient.warning("Error adding torrent (HTTP \(httpResponse.statusCode)")
+            }
+        }
+    }
 
+    /// Add a torrent from a remote URL.
     func addTorrent(url torrentUrl: URL) {
         guard let url = baseURL?.appending(path: "api/v2/torrents/add"), let cookie = self.cookies else {
             return
@@ -54,19 +69,18 @@ class TorrentClient: ObservableObject {
         let headers: HTTPHeaders = ["Cookie": cookie]
         AF.upload(multipartFormData: { multipartFormData in
             multipartFormData.append(urlData, withName: "urls")
-        }, to: url, headers: headers).response { response in
-            if let error = response.error {
-                Logger.torrentClient.info("Error when adding torrent: \(error)")
-                return
-            }
-            if let httpResponse = response.response {
-                if httpResponse.statusCode == 200 {
-                    Logger.torrentClient.info("Successfully added torrent")
-                } else {
-                    Logger.torrentClient.warning("Error adding torrent (HTTP \(httpResponse.statusCode)")
-                }
-            }
+        }, to: url, headers: headers).response(completionHandler: self.addTorrentCallback)
+    }
+
+    /// Add a torrent from a local file URL.
+    func addTorrent(file torrentFileUrl: URL) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/add"), let cookie = self.cookies else {
+            return
         }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        AF.upload(multipartFormData: { multipartFormData in
+            multipartFormData.append(torrentFileUrl, withName: "torrents")
+        }, to: url, headers: headers).response(completionHandler: self.addTorrentCallback)
     }
 
     /// Get a session cookie.

@@ -8,6 +8,23 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>BitTorrent Document</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeIconSystemGenerated</key>
+			<true/>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.bittorrent.torrent</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>0.0.1</string>
 	<key>CFBundleURLTypes</key>
@@ -19,6 +36,34 @@
 			<array>
 				<string>magnet</string>
 			</array>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.item</string>
+				<string>com.bittorrent.torrent</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>BitTorrent Document</string>
+			<key>UTTypeReferenceURL</key>
+			<string>http://www.bittorrent.org/beps/bep_0000.html</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.bittorrent.torrent</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/x-bittorrent</string>
+				</array>
+				<key>public.filename-extension</key>
+				<array>
+					<string>torrent</string>
+				</array>
+			</dict>
 		</dict>
 	</array>
 </dict>

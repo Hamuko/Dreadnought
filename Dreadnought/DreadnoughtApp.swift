@@ -43,7 +43,11 @@ class DreadnoughtAppDelegate: NSObject, NSApplicationDelegate {
 
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
-            self.client?.addTorrent(url: url)
+            if url.isFileURL {
+                self.client?.addTorrent(file: url)
+            } else {
+                self.client?.addTorrent(url: url)
+            }
         }
     }
 }
