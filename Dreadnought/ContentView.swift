@@ -294,6 +294,17 @@ struct TorrentList: View {
             .dialogIcon(Image(systemName: "trash.circle.fill"))
             .dialogSeverity(.critical)
 
+            .onDrop(of: ["public.file-url"], isTargeted: nil) { providers in
+                for provider in providers {
+                    _ = provider.loadObject(ofClass: URL.self) { url, error in
+                        guard let url = url else {
+                            return
+                        }
+                        client.addTorrent(file: url)
+                    }
+                }
+                return true
+            }
             .onKeyPress(.escape) {
                 DispatchQueue.main.async {
                     self.selectedTorrents.removeAll()
