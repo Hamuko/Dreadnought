@@ -175,22 +175,22 @@ class TorrentClient: ObservableObject {
         }
         let headers: HTTPHeaders = ["Cookie": cookie]
         let response = await AF.request(url, parameters: ["rid": self.rid], headers: headers)
+            .validate()
             .serializingDecodable(MainData.self)
             .response
 
         if let error = response.error {
-            Logger.torrentClient.fault("Received error on update: \(error)")
-            return
-        }
-
-        if let httpResponse = response.response {
-            if httpResponse.statusCode == 403 {
-                Logger.torrentClient.error("Not authenticated")
-                self.keepUpdating = false
-                DispatchQueue.main.async {
-                    self.authenticationState = .unauthenticated
-                }
+            switch error {
+                case .responseValidationFailed(reason: .unacceptableStatusCode(code: 403)):
+                    Logger.torrentClient.error("Not authenticated")
+                    self.keepUpdating = false
+                    DispatchQueue.main.async {
+                        self.authenticationState = .unauthenticated
+                    }
+                default:
+                    Logger.torrentClient.fault("Received error on update: \(error)")
             }
+            return
         }
 
         switch response.result {
