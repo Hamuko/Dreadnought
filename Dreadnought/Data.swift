@@ -11,6 +11,7 @@ struct Torrent: Identifiable {
     var category: String
     var addedOn: Date
     var state: TorrentState
+    var tags: [String]
 
     var id: String { hash }
 
@@ -24,7 +25,8 @@ struct Torrent: Identifiable {
         speedUp:Int64,
         category: String,
         addedOn: Date,
-        state: TorrentState
+        state: TorrentState,
+        tags: [String]
     ) {
         self.hash = hash
         self.name = name
@@ -36,6 +38,7 @@ struct Torrent: Identifiable {
         self.category = category
         self.addedOn = addedOn
         self.state = state
+        self.tags = tags
     }
 
     init(hash: String, data: TorrentData) {
@@ -49,6 +52,7 @@ struct Torrent: Identifiable {
         self.category = data.category!
         self.addedOn = Date(timeIntervalSince1970: TimeInterval(data.addedOn!))
         self.state = TorrentState.from(data.state!)
+        self.tags = data.tags!.split(separator: ", ").map { String($0) }
     }
 
     mutating func update(data: TorrentData) {
@@ -72,6 +76,9 @@ struct Torrent: Identifiable {
         }
         if let state = data.state {
             self.state = TorrentState.from(state)
+        }
+        if let tags = data.tags {
+            self.tags = tags.split(separator: ", ").map { String($0) }
         }
     }
 }

@@ -251,6 +251,12 @@ struct TorrentList: View {
                 .width(min: 1)
                 .customizationID("category")
 
+                TableColumn("Tags") { torrent in
+                    Text(torrent.tags.joined(separator: ", "))
+                }
+                .width(min: 1)
+                .customizationID("tags")
+
                 TableColumn("Added on", value: \.addedOn) { torrent in
                     Text(torrent.addedOn, format: .dateTime)
                         .help(torrent.addedOn.formatted(.relative(presentation: .numeric, unitsStyle: .wide)))
@@ -552,7 +558,8 @@ struct LoginView: View {
             speedUp: 1490124,
             category: "Linux",
             addedOn: Date(timeIntervalSince1970: 1710550279),
-            state: .uploading
+            state: .uploading,
+            tags: []
         ),
         "2aa4f5a7e209e54b32803d43670971c4c8caaa05": Torrent(
             hash: "2aa4f5a7e209e54b32803d43670971c4c8caaa05",
@@ -564,7 +571,8 @@ struct LoginView: View {
             speedUp: 198453,
             category: "Linux",
             addedOn: Date(timeIntervalSince1970: 1715512279),
-            state: .downloading
+            state: .downloading,
+            tags: []
         ),
         "0852ef544a4694995fcbef7132477c688ded7d9a": Torrent(
             hash: "0852ef544a4694995fcbef7132477c688ded7d9a",
@@ -576,7 +584,8 @@ struct LoginView: View {
             speedUp: 0,
             category: "Not Linux",
             addedOn: Date(timeIntervalSince1970: 1715514390),
-            state: .stalledDL
+            state: .stalledDL,
+            tags: []
         ),
     ]
     client.connectionStatus = .connected
