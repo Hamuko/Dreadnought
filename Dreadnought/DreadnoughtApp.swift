@@ -1,6 +1,50 @@
 import SwiftUI
 import OSLog
 
+extension FocusedValues {
+    struct TorrentSelectionFocusedValueKey: FocusedValueKey {
+        typealias Value = TorrentSelection
+    }
+
+    struct TorrentActionsFocusedValueKey: FocusedValueKey {
+        typealias Value = TorrentActions
+    }
+
+    var torrents: TorrentSelection? {
+        get { self[TorrentSelectionFocusedValueKey.self] }
+        set { self[TorrentSelectionFocusedValueKey.self] = newValue }
+    }
+    var torrentActions: TorrentActions? {
+        get { self[TorrentActionsFocusedValueKey.self] }
+        set { self[TorrentActionsFocusedValueKey.self] = newValue }
+    }
+}
+
+struct TorrentCommands: Commands {
+    @FocusedValue(\.torrents) var torrents: TorrentSelection?
+    @FocusedValue(\.torrentActions) var torrentActions: TorrentActions?
+
+    var disabled: Bool { self.torrents?.isEmpty ?? true }
+
+    var body: some Commands {
+        CommandMenu("Torrent") {
+            Button("Remove") {
+                guard let torrents = torrents else { return }
+                torrentActions?.torrentsPendingRemoval = torrents
+            }
+            .disabled(disabled)
+            .keyboardShortcut(KeyEquivalent.delete, modifiers: [])
+
+            Button("Remove and delete data") {
+                guard let torrents = torrents else { return }
+                torrentActions?.torrentsPendingDeletion = torrents
+            }
+            .disabled(disabled)
+            .keyboardShortcut(KeyEquivalent.deleteForward, modifiers: [])
+        }
+    }
+}
+
 @main
 struct DreadnoughtApp: App {
     @NSApplicationDelegateAdaptor(DreadnoughtAppDelegate.self) var appDelegate
@@ -20,6 +64,7 @@ struct DreadnoughtApp: App {
         }
         .keyboardShortcut("1", modifiers: .command)
         .commands {
+            TorrentCommands()
             CommandGroup(before: .importExport) {
                 Button("Make default for magnet links", action: self.makeDefaultMagnetHandler)
             }

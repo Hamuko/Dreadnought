@@ -142,16 +142,47 @@ struct TorrentView: View {
     }
 }
 
+class TorrentActions: ObservableObject {
+    @Published var torrentsPendingDeletion: TorrentSelection?
+    @Published var torrentsPendingRemoval: TorrentSelection?
+    
+    var showDeleteConfirmation: Bool {
+        get {
+            guard let pending = torrentsPendingDeletion else {
+                return false
+            }
+            return !pending.isEmpty
+        }
+        set {
+            if newValue == false {
+                torrentsPendingDeletion?.removeAll()
+            }
+        }
+    }
+
+    var showRemoveConfirmation: Bool {
+        get {
+            guard let pending = torrentsPendingRemoval else {
+                return false
+            }
+            return !pending.isEmpty
+        }
+        set {
+            if newValue == false {
+                torrentsPendingRemoval?.removeAll()
+            }
+        }
+    }
+}
+
 struct TorrentList: View {
     @EnvironmentObject var client: TorrentClient
     
     @AppStorage("TorrentView.columns") private var columnCustomization: TableColumnCustomization<Torrent>
 
-    @State private var torrentsPendingConfirmation: Set<Torrent.ID>?
     @State private var selectedTorrents = TorrentSelection()
     @State private var sortOrder = [KeyPathComparator(\Torrent.name)]
-    @State private var showRemoveConfirmation: Bool = false
-    @State private var showDeleteConfirmation: Bool = false
+    @StateObject private var torrentActions = TorrentActions()
 
     @Binding var categoryFilter: CategoryFilter
     @Binding var stateFilter: StateFilter
@@ -264,14 +295,14 @@ struct TorrentList: View {
                 .width(min: 1)
                 .customizationID("addedOn")
             }
+            .focusedValue(\.torrents, selectedTorrents)
+            .focusedValue(\.torrentActions, torrentActions)
             .contextMenu(forSelectionType: Torrent.ID.self) { items in
                 Button("Remove", role: .destructive) {
-                    torrentsPendingConfirmation = items
-                    showRemoveConfirmation = true
+                    torrentActions.torrentsPendingRemoval = items
                 }
                 Button("Remove and delete data", role: .destructive) {
-                    torrentsPendingConfirmation = items
-                    showDeleteConfirmation = true
+                    torrentActions.torrentsPendingDeletion = items
                 }
 
                 Divider()
@@ -288,14 +319,14 @@ struct TorrentList: View {
                     }
                 }
             }
-            .confirmationDialog("Remove torrent?", isPresented: $showRemoveConfirmation) {
-                TorrentRemovalConfirmation(torrents: $torrentsPendingConfirmation, delete: false)
+            .confirmationDialog("Remove torrent?", isPresented: $torrentActions.showRemoveConfirmation) {
+                TorrentRemovalConfirmation(torrents: $torrentActions.torrentsPendingRemoval, delete: false)
             }
             .dialogIcon(Image(systemName: "xmark.circle.fill"))
             .dialogSeverity(.standard)
 
-            .confirmationDialog("Remove torrent and delete data?", isPresented: $showDeleteConfirmation) {
-                TorrentRemovalConfirmation(torrents: $torrentsPendingConfirmation, delete: true)
+            .confirmationDialog("Remove torrent and delete data?", isPresented: $torrentActions.showDeleteConfirmation) {
+                TorrentRemovalConfirmation(torrents: $torrentActions.torrentsPendingDeletion, delete: true)
             }
             .dialogIcon(Image(systemName: "trash.circle.fill"))
             .dialogSeverity(.critical)
