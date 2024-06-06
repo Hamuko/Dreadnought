@@ -386,6 +386,8 @@ struct TorrentRemovalConfirmation : View {
             }
             torrents = nil
         }
+        .keyboardShortcut(KeyEquivalent("D"), modifiers: .command)
+
         Button("Cancel", role: .cancel) {
             torrents = nil
         }
