@@ -140,6 +140,20 @@ class TorrentClient: ObservableObject {
             }
         }
     }
+    
+    func forceResume(hashes: Set<String>) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/setForceStart"), let cookie = self.cookies else {
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let parameters = ["hashes": hashes.joined(separator: "|"), "value": "true"]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
+            if let error = response.error {
+                Logger.torrentClient.info("Error when pausing torrent(s): \(error)")
+                return
+            }
+        }
+    }
 
     func loadPreferences() {
         if let clientCookie = UserDefaults.standard.string(forKey: PreferenceNames.clientCookie) {
@@ -201,6 +215,20 @@ class TorrentClient: ObservableObject {
         }
     }
 
+    func pause(hashes: Set<String>) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/pause"), let cookie = self.cookies else {
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let parameters = ["hashes": hashes.joined(separator: "|")]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
+            if let error = response.error {
+                Logger.torrentClient.info("Error when pausing torrent(s): \(error)")
+                return
+            }
+        }
+    }
+
     /// Update client state from given main data.
     func processMainData(mainData: MainData) {
         self.rid = mainData.rid
@@ -246,6 +274,20 @@ class TorrentClient: ObservableObject {
                     Logger.torrentClient.debug("Removing torrent \(hash)")
                     self.torrents.removeValue(forKey: hash)
                 }
+            }
+        }
+    }
+
+    func resume(hashes: Set<String>) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/resume"), let cookie = self.cookies else {
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let parameters = ["hashes": hashes.joined(separator: "|")]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
+            if let error = response.error {
+                Logger.torrentClient.info("Error when pausing torrent(s): \(error)")
+                return
             }
         }
     }

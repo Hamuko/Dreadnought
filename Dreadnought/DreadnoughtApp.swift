@@ -23,11 +23,31 @@ extension FocusedValues {
 struct TorrentCommands: Commands {
     @FocusedValue(\.torrents) var torrents: TorrentSelection?
     @FocusedValue(\.torrentActions) var torrentActions: TorrentActions?
+    
+    let client: TorrentClient
 
     var disabled: Bool { self.torrents?.isEmpty ?? true }
 
     var body: some Commands {
         CommandMenu("Torrent") {
+            Button("Resume") {
+                guard let torrents = torrents else { return }
+                client.resume(hashes: torrents)
+            }
+            .disabled(disabled)
+            Button("Pause") {
+                guard let torrents = torrents else { return }
+                client.pause(hashes: torrents)
+            }
+            .disabled(disabled)
+            Button("Force resume") {
+                guard let torrents = torrents else { return }
+                client.forceResume(hashes: torrents)
+            }
+            .disabled(disabled)
+
+            Divider()
+
             Button("Remove") {
                 guard let torrents = torrents else { return }
                 torrentActions?.torrentsPendingRemoval = torrents
@@ -64,7 +84,7 @@ struct DreadnoughtApp: App {
         }
         .keyboardShortcut("1", modifiers: .command)
         .commands {
-            TorrentCommands()
+            TorrentCommands(client: client)
             CommandGroup(before: .importExport) {
                 Button("Make default for magnet links", action: self.makeDefaultMagnetHandler)
             }

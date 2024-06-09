@@ -298,6 +298,18 @@ struct TorrentList: View {
             .focusedValue(\.torrents, selectedTorrents)
             .focusedValue(\.torrentActions, torrentActions)
             .contextMenu(forSelectionType: Torrent.ID.self) { items in
+                Button("Resume") {
+                    client.resume(hashes: items)
+                }
+                Button("Pause") {
+                    client.pause(hashes: items)
+                }
+                Button("Force resume") {
+                    client.forceResume(hashes: items)
+                }
+
+                Divider()
+                
                 Button("Remove", role: .destructive) {
                     torrentActions.torrentsPendingRemoval = items
                 }
