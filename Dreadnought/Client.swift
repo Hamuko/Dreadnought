@@ -2,6 +2,7 @@ import Foundation
 import CryptoKit
 import OSLog
 import Alamofire
+import UserNotifications
 
 enum ConnectionStatus {
     case connected
@@ -25,6 +26,13 @@ extension ClientAuthentication {
         get { self != .authenticated }
         set { self = newValue ? Self.unauthenticated : Self.authenticated }
     }
+}
+
+enum TorrentNotification {
+    case downloadFinished
+    case errored
+    case missingFiles
+    case paused
 }
 
 class TorrentClient: ObservableObject {
@@ -237,6 +245,7 @@ class TorrentClient: ObservableObject {
             result.insert(category)
         } ?? []
         var torrentUpdate: [String: Torrent] = [:]
+        var notifiableTorrents: [(Torrent, TorrentNotification)] = []
 
         if mainData.fullUpdate {
             Logger.torrentClient.info("Received a full update")
@@ -248,6 +257,20 @@ class TorrentClient: ObservableObject {
                 if var torrent = self.torrents[hash] {
                     torrent.update(data: data)
                     torrentUpdate[hash] = torrent
+                    if data.progress == 1.0 {
+                        notifiableTorrents.append((torrent, .downloadFinished))
+                    }
+                    if data.state != nil {
+                        switch torrent.state {
+                            case .error:
+                                notifiableTorrents.append((torrent, .errored))
+                            case .missingFiles:
+                                notifiableTorrents.append((torrent, .missingFiles))
+                            case .pausedUP:
+                                notifiableTorrents.append((torrent, .paused))
+                            default: break
+                        }
+                    }
                 } else {
                     torrentUpdate[hash] = Torrent(hash: hash, data: data)
                 }
@@ -274,6 +297,20 @@ class TorrentClient: ObservableObject {
                     Logger.torrentClient.debug("Removing torrent \(hash)")
                     self.torrents.removeValue(forKey: hash)
                 }
+            }
+
+            for (torrent, notificationType) in notifiableTorrents {
+                let notificationContent = UNMutableNotificationContent()
+                notificationContent.title = switch notificationType {
+                    case .downloadFinished: "Torrent finished"
+                    case .errored: "Torrent has errored"
+                    case .missingFiles: "Torrent is missing files"
+                    case .paused: "Torrent paused"
+                }
+                notificationContent.body = torrent.name
+                notificationContent.sound = .default
+                let notificationRequest = UNNotificationRequest(identifier: torrent.hash, content: notificationContent, trigger: nil)
+                UNUserNotificationCenter.current().add(notificationRequest)
             }
         }
     }

@@ -1,5 +1,6 @@
 import SwiftUI
 import OSLog
+import UserNotifications
 
 extension FocusedValues {
     struct TorrentSelectionFocusedValueKey: FocusedValueKey {
@@ -76,6 +77,7 @@ struct DreadnoughtApp: App {
         self.client.loadPreferences()
         self.client.start()
         self.appDelegate.client = self.client
+        self.askNotificationSupport()
     }
 
     var body: some Scene {
@@ -87,6 +89,16 @@ struct DreadnoughtApp: App {
             TorrentCommands(client: client)
             CommandGroup(before: .importExport) {
                 Button("Make default for magnet links", action: self.makeDefaultMagnetHandler)
+            }
+        }
+    }
+
+    func askNotificationSupport() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if granted {
+                Logger.app.info("Granted permission for notifications")
+            } else {
+                Logger.app.warning("Permission for notifications not granted: \(error)")
             }
         }
     }
