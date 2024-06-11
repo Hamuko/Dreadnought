@@ -79,10 +79,20 @@ struct ServerState: Decodable {
     let uploadSpeed: Int64
     let connectionStatus: ConnectionStatus?
 
+    let allTimeDownload: Int64?
+    let allTimeUpload: Int64?
+    let sessionDownload: Int64?
+    let sessionUpload: Int64?
+
     enum CodingKeys: String, CodingKey {
         case downloadSpeed = "dl_info_speed"
         case uploadSpeed = "up_info_speed"
         case connectionStatus = "connection_status"
+
+        case allTimeDownload = "alltime_dl"
+        case allTimeUpload = "alltime_ul"
+        case sessionDownload = "dl_info_data"
+        case sessionUpload = "up_info_data"
     }
 
     init(from decoder: any Decoder) throws {
@@ -99,5 +109,10 @@ struct ServerState: Decodable {
             default:
                 nil
         }
+
+        allTimeDownload = try? values.decode(Int64.self, forKey: .allTimeDownload)
+        allTimeUpload = try? values.decode(Int64.self, forKey: .allTimeUpload)
+        sessionDownload = try? values.decode(Int64.self, forKey: .sessionDownload)
+        sessionUpload = try? values.decode(Int64.self, forKey: .sessionUpload)
     }
 }

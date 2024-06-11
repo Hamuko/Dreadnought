@@ -82,7 +82,7 @@ struct DreadnoughtApp: App {
 
     var body: some Scene {
         Window("Dreadnought", id: "main") {
-            ContentView().environmentObject(self.client)
+            MainView().environmentObject(self.client)
         }
         .keyboardShortcut("1", modifiers: .command)
         .commands {
@@ -91,6 +91,11 @@ struct DreadnoughtApp: App {
                 Button("Make default for magnet links", action: self.makeDefaultMagnetHandler)
             }
         }
+        
+        Window("Statistics", id: "stats") {
+            StatsView().environmentObject(self.client)
+        }
+        .keyboardShortcut("2", modifiers: .command)
     }
 
     func askNotificationSupport() {

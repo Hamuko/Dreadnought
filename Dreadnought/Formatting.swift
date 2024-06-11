@@ -3,6 +3,14 @@ import Foundation
 /// Filesize formatting in power of 10 (as is customary on macOS).
 struct FilesizeFormatStyle: FormatStyle {
     func format(_ value: Int64) -> String {
+        if value >= 10_000_000_000_000 {
+            let value = Double(value) / 1_000_000_000_000
+            return String(format: "%.1f TB", value)
+        }
+        if value >= 1_000_000_000_000 {
+            let value = Double(value) / 1_000_000_000_000
+            return String(format: "%.2f TB", value)
+        }
         if value >= 100_000_000_000 {
             let value = Double(value) / 1_000_000_000
             return String(format: "%.1f GB", value)
@@ -34,6 +42,12 @@ struct ProgressFormatStyle: FormatStyle {
 
 struct RatioFormatStyle: FormatStyle {
     func format(_ value: Double) -> String {
+        if value == .infinity {
+            return "∞"
+        }
+        if value.isNaN {
+            return "-"
+        }
         return String(format: "%.2f", value)
     }
 }

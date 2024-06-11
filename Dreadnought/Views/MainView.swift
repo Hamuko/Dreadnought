@@ -506,7 +506,7 @@ struct SessionTransferInfo<Content: View> : View {
     }
 }
 
-struct ContentView: View {
+struct MainView: View {
     var body: some View {
         TorrentView()
     }
@@ -636,7 +636,7 @@ struct LoginView: View {
     client.connectionStatus = .connected
     client.downloadSpeed = client.torrents.reduce(0) { $0 + $1.value.speedDown }
     client.uploadSpeed = client.torrents.reduce(0) { $0 + $1.value.speedUp }
-    return ContentView().environmentObject(client)
+    return MainView().environmentObject(client)
 }
 
 #Preview() {

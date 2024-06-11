@@ -40,6 +40,10 @@ class TorrentClient: ObservableObject {
 
     @Published var categories = Set<String>()
     @Published var torrents: [String: Torrent] = [:]
+    @Published var allTimeDownload: Int64 = 0
+    @Published var allTimeUpload: Int64 = 0
+    @Published var sessionDownload: Int64 = 0
+    @Published var sessionUpload: Int64 = 0
     @Published var downloadSpeed: Int64 = 0
     @Published var uploadSpeed: Int64 = 0
     @Published var connectionStatus = ConnectionStatus.disconnected
@@ -280,6 +284,18 @@ class TorrentClient: ObservableObject {
         RunLoop.main.perform {
             self.downloadSpeed = mainData.serverState.downloadSpeed
             self.uploadSpeed = mainData.serverState.uploadSpeed
+            if let allTimeDownload = mainData.serverState.allTimeDownload {
+                self.allTimeDownload = allTimeDownload
+            }
+            if let allTimeUpload = mainData.serverState.allTimeUpload {
+                self.allTimeUpload = allTimeUpload
+            }
+            if let sessionDownload = mainData.serverState.sessionDownload {
+                self.sessionDownload = sessionDownload
+            }
+            if let sessionUpload = mainData.serverState.sessionUpload {
+                self.sessionUpload = sessionUpload
+            }
 
             if let connectionStatus = mainData.serverState.connectionStatus {
                 self.connectionStatus = connectionStatus
