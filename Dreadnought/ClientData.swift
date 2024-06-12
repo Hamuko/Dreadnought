@@ -84,6 +84,16 @@ struct ServerState: Decodable {
     let sessionDownload: Int64?
     let sessionUpload: Int64?
 
+    let sessionWaste: Int64?
+    let connectedPeers: Int64?
+    let readCacheHits: Double?
+    let totalBufferSize: Int64?
+    let writeCacheOverload: Double?
+    let readCacheOverload: Double?
+    let queuedIOJobs: Int64?
+    let averageQueueTime: Int64?
+    let totalQueueSize: Int64?
+
     enum CodingKeys: String, CodingKey {
         case downloadSpeed = "dl_info_speed"
         case uploadSpeed = "up_info_speed"
@@ -93,6 +103,16 @@ struct ServerState: Decodable {
         case allTimeUpload = "alltime_ul"
         case sessionDownload = "dl_info_data"
         case sessionUpload = "up_info_data"
+
+        case sessionWaste = "total_wasted_session"
+        case connectedPeers = "total_peer_connections"
+        case readCacheHits = "read_cache_hits"
+        case totalBufferSize = "total_buffers_size"
+        case writeCacheOverload = "write_cache_overload"
+        case readCacheOverload = "read_cache_overload"
+        case queuedIOJobs = "queued_io_jobs"
+        case averageQueueTime = "average_time_queue"
+        case totalQueueSize = "total_queued_size"
     }
 
     init(from decoder: any Decoder) throws {
@@ -114,5 +134,15 @@ struct ServerState: Decodable {
         allTimeUpload = try? values.decode(Int64.self, forKey: .allTimeUpload)
         sessionDownload = try? values.decode(Int64.self, forKey: .sessionDownload)
         sessionUpload = try? values.decode(Int64.self, forKey: .sessionUpload)
+
+        sessionWaste = try? values.decode(Int64.self, forKey: .sessionWaste)
+        connectedPeers = try? values.decode(Int64.self, forKey: .connectedPeers)
+        readCacheHits = try? values.decode(Double.self, forKey: .readCacheHits)
+        totalBufferSize = try? values.decode(Int64.self, forKey: .totalBufferSize)
+        writeCacheOverload = try? values.decode(Double.self, forKey: .writeCacheOverload)
+        readCacheOverload = try? values.decode(Double.self, forKey: .readCacheOverload)
+        queuedIOJobs = try? values.decode(Int64.self, forKey: .queuedIOJobs)
+        averageQueueTime = try? values.decode(Int64.self, forKey: .averageQueueTime)
+        totalQueueSize = try? values.decode(Int64.self, forKey: .totalQueueSize)
     }
 }

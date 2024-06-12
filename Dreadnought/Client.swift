@@ -46,6 +46,17 @@ class TorrentClient: ObservableObject {
     @Published var sessionUpload: Int64 = 0
     @Published var downloadSpeed: Int64 = 0
     @Published var uploadSpeed: Int64 = 0
+
+    @Published var sessionWaste: Int64 = 0
+    @Published var connectedPeers: Int64 = 0
+    @Published var readCacheHits: Double = 0
+    @Published var totalBufferSize: Int64 = 0
+    @Published var writeCacheOverload: Double = 0
+    @Published var readCacheOverload: Double = 0
+    @Published var queuedIOJobs: Int64 = 0
+    @Published var averageQueueTime: Int64 = 0
+    @Published var totalQueueSize: Int64 = 0
+
     @Published var connectionStatus = ConnectionStatus.disconnected
     @Published var authenticationState: ClientAuthentication = .unauthenticated
 
@@ -299,6 +310,33 @@ class TorrentClient: ObservableObject {
 
             if let connectionStatus = mainData.serverState.connectionStatus {
                 self.connectionStatus = connectionStatus
+            }
+            if let sessionWaste = mainData.serverState.sessionWaste {
+                self.sessionWaste = sessionWaste
+            }
+            if let connectedPeers = mainData.serverState.connectedPeers {
+                self.connectedPeers = connectedPeers
+            }
+            if let readCacheHits = mainData.serverState.readCacheHits {
+                self.readCacheHits = readCacheHits
+            }
+            if let totalBufferSize = mainData.serverState.totalBufferSize {
+                self.totalBufferSize = totalBufferSize
+            }
+            if let writeCacheOverload = mainData.serverState.writeCacheOverload {
+                self.writeCacheOverload = writeCacheOverload
+            }
+            if let readCacheOverload = mainData.serverState.readCacheOverload {
+                self.readCacheOverload = readCacheOverload
+            }
+            if let queuedIOJobs = mainData.serverState.queuedIOJobs {
+                self.queuedIOJobs = queuedIOJobs
+            }
+            if let averageQueueTime = mainData.serverState.averageQueueTime {
+                self.averageQueueTime = averageQueueTime
+            }
+            if let totalQueueSize = mainData.serverState.totalQueueSize {
+                self.totalQueueSize = totalQueueSize
             }
 
             if mainData.fullUpdate {
