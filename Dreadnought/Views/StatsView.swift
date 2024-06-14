@@ -22,22 +22,6 @@ struct StatsView: View {
 
     var body: some View {
         Grid(alignment: .trailing, horizontalSpacing: 15) {
-            StatGridTitle(text: "Session")
-            GridRow {
-                Text("Upload")
-                Text(FilesizeFormatStyle().format(client.sessionUpload))
-            }
-            GridRow {
-                Text("Download")
-                Text(FilesizeFormatStyle().format(client.sessionDownload))
-            }
-            GridRow {
-                Text("Ratio")
-                Text(RatioFormatStyle().format(sessionRatio))
-            }
-
-            Divider().gridCellUnsizedAxes(.horizontal)
-
             StatGridTitle(text: "Lifetime")
             GridRow {
                 Text("Upload")
@@ -54,8 +38,22 @@ struct StatsView: View {
 
             Divider().gridCellUnsizedAxes(.horizontal)
 
+            StatGridTitle(text: "Session")
             GridRow {
-                Text("Session waste")
+                Text("Upload")
+                Text(FilesizeFormatStyle().format(client.sessionUpload))
+            }
+            GridRow {
+                Text("Download")
+                Text(FilesizeFormatStyle().format(client.sessionDownload))
+            }
+            GridRow {
+                Text("Ratio")
+                Text(RatioFormatStyle().format(sessionRatio))
+            }
+
+            GridRow {
+                Text("Waste")
                 Text(FilesizeFormatStyle().format(client.sessionWaste))
             }
             GridRow {
@@ -106,5 +104,11 @@ struct StatsView: View {
 
 #Preview {
     @State var client = TorrentClient()
+    client.allTimeDownload = 197912819680
+    client.allTimeUpload = 1834422655961
+    client.sessionUpload = 499025
+    client.sessionWaste = 1024
+    client.connectedPeers = 12
+    client.totalBufferSize = 131234
     return StatsView().environmentObject(client)
 }
