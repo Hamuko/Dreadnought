@@ -310,6 +310,16 @@ class TorrentClient: ObservableObject {
 
             if let connectionStatus = mainData.serverState.connectionStatus {
                 self.connectionStatus = connectionStatus
+                let notificationContent = UNMutableNotificationContent()
+                notificationContent.title = "Connection status changed"
+                notificationContent.body = switch connectionStatus {
+                    case .connected: "Connected"
+                    case .disconnected: "Disconnected"
+                    case .firewalled: "Firewalled"
+                }
+                notificationContent.sound = .default
+                let notificationRequest = UNNotificationRequest(identifier: "connection-status", content: notificationContent, trigger: nil)
+                UNUserNotificationCenter.current().add(notificationRequest)
             }
             if let sessionWaste = mainData.serverState.sessionWaste {
                 self.sessionWaste = sessionWaste
