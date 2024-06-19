@@ -92,13 +92,14 @@ struct StatusNavigationLink: View {
 struct TorrentView: View {
     @EnvironmentObject var client: TorrentClient
 
+    @State var search = ""
     @State var categoryFilter = CategoryFilter.all
     @State var stateFilter = StateFilter.all
 
     var needsAuthentication: Bool { client.authenticationState != .authenticated }
 
     var body: some View {
-        let torrentView = TorrentList(categoryFilter: $categoryFilter, stateFilter: $stateFilter)
+        let torrentView = TorrentList(categoryFilter: $categoryFilter, search: $search, stateFilter: $stateFilter)
             .environmentObject(client)
 
         let selectedFilters = Binding<Set<Filter>>(get: {
@@ -136,9 +137,11 @@ struct TorrentView: View {
             }
         } detail: {
             torrentView
-        }.sheet(isPresented: $client.authenticationState.needsAuthentication, content: {
+        }
+        .searchable(text: $search)
+        .sheet(isPresented: $client.authenticationState.needsAuthentication) {
             LoginView().environmentObject(client)
-        })
+        }
     }
 }
 
@@ -185,6 +188,7 @@ struct TorrentList: View {
     @StateObject private var torrentActions = TorrentActions()
 
     @Binding var categoryFilter: CategoryFilter
+    @Binding var search: String
     @Binding var stateFilter: StateFilter
 
     var visibleTorrents: [Torrent] {
@@ -225,6 +229,10 @@ struct TorrentList: View {
                 case .none: torrent.category == ""
                 case .specific(let category): torrent.category == category
                 }
+            }
+            .filter { torrent in
+                guard search != "" else { return true }
+                return torrent.name.lowercased().contains(search.lowercased())
             }
             .sorted(using: sortOrder)
     }
