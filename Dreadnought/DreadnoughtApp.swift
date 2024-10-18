@@ -36,9 +36,9 @@ struct TorrentCommands: Commands {
                 client.resume(hashes: torrents)
             }
             .disabled(disabled)
-            Button("Pause") {
+            Button("Stop") {
                 guard let torrents = torrents else { return }
-                client.pause(hashes: torrents)
+                client.stop(hashes: torrents)
             }
             .disabled(disabled)
             Button("Force resume") {

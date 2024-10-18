@@ -32,7 +32,7 @@ enum TorrentNotification {
     case downloadFinished
     case errored
     case missingFiles
-    case paused
+    case stopped
 }
 
 class TorrentClient: ObservableObject {
@@ -238,20 +238,6 @@ class TorrentClient: ObservableObject {
         }
     }
 
-    func pause(hashes: Set<String>) {
-        guard let url = baseURL?.appending(path: "api/v2/torrents/pause"), let cookie = self.cookies else {
-            return
-        }
-        let headers: HTTPHeaders = ["Cookie": cookie]
-        let parameters = ["hashes": hashes.joined(separator: "|")]
-        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
-            if let error = response.error {
-                Logger.torrentClient.info("Error when pausing torrent(s): \(error)")
-                return
-            }
-        }
-    }
-
     /// Update client state from given main data.
     func processMainData(mainData: MainData) {
         self.rid = mainData.rid
@@ -281,8 +267,8 @@ class TorrentClient: ObservableObject {
                                 notifiableTorrents.append((torrent, .errored))
                             case .missingFiles:
                                 notifiableTorrents.append((torrent, .missingFiles))
-                            case .pausedUP:
-                                notifiableTorrents.append((torrent, .paused))
+                            case .stoppedUP:
+                                notifiableTorrents.append((torrent, .stopped))
                             default: break
                         }
                     }
@@ -371,7 +357,7 @@ class TorrentClient: ObservableObject {
                     case .downloadFinished: "Torrent finished"
                     case .errored: "Torrent has errored"
                     case .missingFiles: "Torrent is missing files"
-                    case .paused: "Torrent paused"
+                    case .stopped: "Torrent stopped"
                 }
                 notificationContent.body = torrent.name
                 notificationContent.sound = .default
@@ -382,7 +368,7 @@ class TorrentClient: ObservableObject {
     }
 
     func resume(hashes: Set<String>) {
-        guard let url = baseURL?.appending(path: "api/v2/torrents/resume"), let cookie = self.cookies else {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/start"), let cookie = self.cookies else {
             return
         }
         let headers: HTTPHeaders = ["Cookie": cookie]
@@ -407,6 +393,20 @@ class TorrentClient: ObservableObject {
                 case 400: Logger.torrentClient.error("Unknown error while setting category")
                 case 409: Logger.torrentClient.warning("No such category \"\(category)\"")
                 default: break
+            }
+        }
+    }
+
+    func stop(hashes: Set<String>) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/stop"), let cookie = self.cookies else {
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let parameters = ["hashes": hashes.joined(separator: "|")]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
+            if let error = response.error {
+                Logger.torrentClient.info("Error when pausing torrent(s): \(error)")
+                return
             }
         }
     }

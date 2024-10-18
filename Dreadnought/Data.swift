@@ -106,10 +106,10 @@ enum TorrentState {
     case missingFiles
     /// Torrent is moving to another location.
     case moving
-    /// Torrent is paused and has NOT finished downloading.
-    case pausedDL
-    /// Torrent is paused and has finished downloading.
-    case pausedUP
+    /// Torrent is stopped and has NOT finished downloading.
+    case stoppedDL
+    /// Torrent is stopped and has finished downloading.
+    case stoppedUP
     /// Queuing is enabled and torrent is queued for download.
     case queuedDL
     /// Queuing is enabled and torrent is queued for upload.
@@ -138,8 +138,8 @@ extension TorrentState {
             case "metaDL": .metaDL
             case "missingFiles": .missingFiles
             case "moving": .moving
-            case "pausedDL": .pausedDL
-            case "pausedUP": .pausedUP
+            case "stoppedDL": .stoppedDL
+            case "stoppedUP": .stoppedUP
             case "queuedDL": .queuedDL
             case "queuedUP": .queuedUP
             case "stalledDL": .stalledDL

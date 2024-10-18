@@ -13,7 +13,7 @@ enum StateFilter: String, CaseIterable, Hashable {
     case seeding = "Seeding"
     case completed = "Completed"
     case resumed = "Resumed"
-    case paused = "Paused"
+    case stopped = "Stopped"
     case active = "Active"
     case inactive = "Inactive"
     case stalled = "Stalled"
@@ -65,7 +65,7 @@ struct StatusNavigationLink: View {
             case .seeding: "arrow.up"
             case .completed: "checkmark"
             case .resumed: "play"
-            case .paused: "pause"
+            case .stopped: "stop"
             case .active: "arrow.up.arrow.down"
             case .inactive: "clock.arrow.2.circlepath"
             case .stalled: "arrow.down.left.arrow.up.right"
@@ -204,9 +204,9 @@ struct TorrentList: View {
                     case .completed:
                         torrent.progress == 1.0
                     case .resumed:
-                        torrent.state != .pausedDL && torrent.state != .pausedUP
-                    case .paused:
-                        torrent.state == .pausedDL || torrent.state == .pausedUP
+                        torrent.state != .stoppedDL && torrent.state != .stoppedUP
+                    case .stopped:
+                        torrent.state == .stoppedDL || torrent.state == .stoppedUP
                     case .active:
                         torrent.speedDown != 0 || torrent.speedUp != 0
                     case .inactive:
@@ -309,8 +309,8 @@ struct TorrentList: View {
                 Button("Resume") {
                     client.resume(hashes: items)
                 }
-                Button("Pause") {
-                    client.pause(hashes: items)
+                Button("Stop") {
+                    client.stop(hashes: items)
                 }
                 Button("Force resume") {
                     client.forceResume(hashes: items)
@@ -425,7 +425,7 @@ struct TorrentName : View {
             case .error: "exclamationmark.octagon.fill"
             case .metaDL: "arrow.clockwise.circle"
             case .missingFiles: "exclamationmark.triangle.fill"
-            case .pausedDL, .pausedUP: "pause.circle"
+            case .stoppedDL, .stoppedUP: "stop.circle"
             case .stalledDL, .queuedDL: "arrowshape.down.circle"
             case .stalledUP, .queuedUP: "arrowshape.up.circle"
             case .uploading, .forcedUP: "arrowshape.up.circle.fill"
@@ -434,7 +434,7 @@ struct TorrentName : View {
     }
     var imageColor: AnyShapeStyle {
         switch torrent.state {
-            case .allocating, .pausedDL, .pausedUP, .stalledDL, .stalledUP: AnyShapeStyle(.secondary)
+            case .allocating, .stoppedDL, .stoppedUP, .stalledDL, .stalledUP: AnyShapeStyle(.secondary)
             case .error: AnyShapeStyle(.red)
             case .forcedDL, .forcedUP: AnyShapeStyle(.orange)
             case .missingFiles: AnyShapeStyle(.yellow)
@@ -450,7 +450,7 @@ struct TorrentName : View {
                 .foregroundStyle(imageColor)
 
             Text(torrent.name)
-                .foregroundStyle(torrent.state == .pausedDL || torrent.state == .pausedUP ? .secondary : .primary)
+                .foregroundStyle(torrent.state == .stoppedDL || torrent.state == .stoppedUP ? .secondary : .primary)
         }
         .help(torrent.name)
     }
