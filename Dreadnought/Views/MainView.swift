@@ -237,6 +237,32 @@ struct TorrentList: View {
             .sorted(using: sortOrder)
     }
 
+    var deleteConfirmationText: String {
+        guard let pending = torrentActions.torrentsPendingDeletion else {
+            return ""
+        }
+        if pending.count == 1 {
+            guard let torrent = client.torrents[pending.first!] else {
+                return ""
+            }
+            return torrent.name
+        }
+        return "\(pending.count) torrents selected"
+    }
+
+    var removeConfirmationText: String {
+        guard let pending = torrentActions.torrentsPendingRemoval else {
+            return ""
+        }
+        if pending.count == 1 {
+            guard let torrent = client.torrents[pending.first!] else {
+                return ""
+            }
+            return torrent.name
+        }
+        return "\(pending.count) torrents selected"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Table(visibleTorrents, selection: $selectedTorrents, sortOrder: $sortOrder, columnCustomization: $columnCustomization) {
@@ -339,16 +365,19 @@ struct TorrentList: View {
                     }
                 }
             }
-            .confirmationDialog("Remove torrent?", isPresented: $torrentActions.showRemoveConfirmation) {
+            .confirmationDialog("Remove torrent?", isPresented: $torrentActions.showRemoveConfirmation, actions: {
                 TorrentRemovalConfirmation(torrents: $torrentActions.torrentsPendingRemoval, delete: false)
-            }
+            }, message: {
+                Text(removeConfirmationText)
+            })
             .dialogIcon(Image(systemName: "xmark.circle.fill"))
             .dialogSeverity(.standard)
-
-            .confirmationDialog("Remove torrent and delete data?", isPresented: $torrentActions.showDeleteConfirmation) {
+            
+            .confirmationDialog("Remove torrent and delete data?", isPresented: $torrentActions.showDeleteConfirmation, actions: {
                 TorrentRemovalConfirmation(torrents: $torrentActions.torrentsPendingDeletion, delete: true)
-            }
-            .dialogIcon(Image(systemName: "trash.circle.fill"))
+            }, message: {
+                Text(deleteConfirmationText)
+            })
             .dialogSeverity(.critical)
 
             .onDrop(of: ["public.file-url"], isTargeted: nil) { providers in
