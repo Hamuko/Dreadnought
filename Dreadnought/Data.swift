@@ -2,6 +2,7 @@ import Foundation
 
 struct Torrent: Identifiable {
     let hash: String
+    let magnetURI: String
     var size: Int64
     var name: String
     var progress: Double
@@ -17,6 +18,7 @@ struct Torrent: Identifiable {
 
     init(
         hash: String,
+        magnetURI: String,
         name: String,
         progress: Double,
         size: Int64,
@@ -29,6 +31,7 @@ struct Torrent: Identifiable {
         tags: [String]
     ) {
         self.hash = hash
+        self.magnetURI = magnetURI
         self.name = name
         self.progress = progress
         self.size = size
@@ -43,6 +46,7 @@ struct Torrent: Identifiable {
 
     init(hash: String, data: TorrentData) {
         self.hash = hash
+        self.magnetURI = data.magnetURI!
         self.name = data.name!
         self.progress = data.progress!
         self.size = Int64(data.size!)

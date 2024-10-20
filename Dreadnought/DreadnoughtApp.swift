@@ -62,6 +62,19 @@ struct TorrentCommands: Commands {
             }
             .disabled(disabled)
             .keyboardShortcut(KeyEquivalent.deleteForward, modifiers: [])
+            
+            Divider()
+            
+            Button("Force recheck") {
+                guard let torrents = torrents else { return }
+                client.recheck(hashes: torrents)
+            }
+            .disabled(disabled)
+            Button("Force reannounce") {
+                guard let torrents = torrents else { return }
+                client.reannounce(hashes: torrents)
+            }
+            .disabled(disabled)
         }
     }
 }

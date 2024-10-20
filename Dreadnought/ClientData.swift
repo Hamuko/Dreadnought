@@ -35,6 +35,7 @@ struct MainData: Decodable {
 struct CategoryData: Codable {}
 
 struct TorrentData: Decodable {
+    let magnetURI: String?
     let name: String?
     let progress: Double?
     let size: Int?
@@ -47,6 +48,7 @@ struct TorrentData: Decodable {
     let tags: String?
 
     enum CodingKeys: String, CodingKey {
+        case magnetURI = "magnet_uri"
         case name
         case progress
         case size
@@ -61,6 +63,7 @@ struct TorrentData: Decodable {
     
     init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
+        magnetURI = (try? values.decode(String.self, forKey: .magnetURI))
         name = (try? values.decode(String.self, forKey: .name))
         progress = (try? values.decode(Double.self, forKey: .progress))
         size = (try? values.decode(Int.self, forKey: .size))

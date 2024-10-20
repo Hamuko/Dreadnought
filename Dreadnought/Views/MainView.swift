@@ -364,6 +364,29 @@ struct TorrentList: View {
                         }
                     }
                 }
+
+                Divider()
+
+                Button("Force recheck") {
+                    client.recheck(hashes: items)
+                }
+                Button("Force reannounce") {
+                    client.reannounce(hashes: items)
+                }
+                Menu("Copy") {
+                    Button("Name") {
+                        let text = items.compactMap { client.torrents[$0]?.name }.joined(separator: "\n")
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.declareTypes([.string], owner: nil)
+                        pasteboard.setString(text, forType: .string)
+                    }
+                    Button("Magnet link") {
+                        let text = items.compactMap { client.torrents[$0]?.magnetURI }.joined(separator: "\n")
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.declareTypes([.string], owner: nil)
+                        pasteboard.setString(text, forType: .string)
+                    }
+                }
             }
             .confirmationDialog("Remove torrent?", isPresented: $torrentActions.showRemoveConfirmation, actions: {
                 TorrentRemovalConfirmation(torrents: $torrentActions.torrentsPendingRemoval, delete: false)
@@ -632,6 +655,7 @@ struct LoginView: View {
     client.torrents = [
         "8a686cbe2ccbc04fc3c1c2d6e213fa69090aea36": Torrent(
             hash: "8a686cbe2ccbc04fc3c1c2d6e213fa69090aea36",
+            magnetURI: "",
             name: "debian-12.5.0-amd64-DVD-1.iso",
             progress: 1,
             size: 4086562816,
@@ -645,6 +669,7 @@ struct LoginView: View {
         ),
         "2aa4f5a7e209e54b32803d43670971c4c8caaa05": Torrent(
             hash: "2aa4f5a7e209e54b32803d43670971c4c8caaa05",
+            magnetURI: "",
             name: "ubuntu-24.04-desktop-amd64.iso",
             progress: 0.2,
             size: 6114770944,
@@ -658,6 +683,7 @@ struct LoginView: View {
         ),
         "0852ef544a4694995fcbef7132477c688ded7d9a": Torrent(
             hash: "0852ef544a4694995fcbef7132477c688ded7d9a",
+            magnetURI: "",
             name: "wikidata-20240101-all.json.gz",
             progress: 0,
             size: 0,

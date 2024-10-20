@@ -367,6 +367,34 @@ class TorrentClient: ObservableObject {
         }
     }
 
+    func reannounce(hashes: Set<String>) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/reannounce"), let cookie = self.cookies else {
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let parameters = ["hashes": hashes.joined(separator: "|")]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
+            if let error = response.error {
+                Logger.torrentClient.info("Error when reannouncing torrent(s): \(error)")
+                return
+            }
+        }
+    }
+
+    func recheck(hashes: Set<String>) {
+        guard let url = baseURL?.appending(path: "api/v2/torrents/recheck"), let cookie = self.cookies else {
+            return
+        }
+        let headers: HTTPHeaders = ["Cookie": cookie]
+        let parameters = ["hashes": hashes.joined(separator: "|")]
+        AF.request(url, method: .post, parameters: parameters, encoder: URLEncodedFormParameterEncoder.default, headers: headers).response { response in
+            if let error = response.error {
+                Logger.torrentClient.info("Error when rechecking torrent(s): \(error)")
+                return
+            }
+        }
+    }
+
     func resume(hashes: Set<String>) {
         guard let url = baseURL?.appending(path: "api/v2/torrents/start"), let cookie = self.cookies else {
             return
