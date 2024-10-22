@@ -2,6 +2,8 @@
 
 Experimental native macOS WebAPI client for qBittorrent, written in Swift and built using SwiftUI.
 
+Dreadnought is compatible qBittorrent 5.0 or newer.
+
 ## Downloads
 
 Pre-built application bundles can be downloaded from [GitHub Releases](https://github.com/Hamuko/Dreadnought/releases/).
