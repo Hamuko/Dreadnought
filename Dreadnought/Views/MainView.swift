@@ -55,6 +55,15 @@ extension CategoryFilter: Equatable {
     }
 }
 
+class TorrentFilter: ObservableObject {
+    @Published var input = ""
+    @Published var output = ""
+
+    init () {
+        $input.debounce(for: .seconds(0.4), scheduler: RunLoop.main).assign(to: &$output)
+    }
+}
+
 struct StatusNavigationLink: View {
     var state: StateFilter
 
@@ -95,14 +104,16 @@ struct StatusNavigationLink: View {
 struct TorrentView: View {
     @EnvironmentObject var client: TorrentClient
 
-    @State var search = ""
     @State var categoryFilter = CategoryFilter.all
     @State var stateFilter = StateFilter.all
+    @StateObject var torrentFilter = TorrentFilter()
 
     var needsAuthentication: Bool { client.authenticationState != .authenticated }
 
     var body: some View {
-        let torrentView = TorrentList(categoryFilter: $categoryFilter, search: $search, stateFilter: $stateFilter)
+        let torrentView = TorrentList(categoryFilter: $categoryFilter,
+                                      search: $torrentFilter.output,
+                                      stateFilter: $stateFilter)
             .environmentObject(client)
 
         let selectedFilters = Binding<Set<Filter>>(get: {
@@ -141,7 +152,7 @@ struct TorrentView: View {
         } detail: {
             torrentView
         }
-        .searchable(text: $search)
+        .searchable(text: $torrentFilter.input)
         .sheet(isPresented: $client.authenticationState.needsAuthentication) {
             LoginView().environmentObject(client)
         }
