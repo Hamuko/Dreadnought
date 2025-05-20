@@ -417,6 +417,16 @@ struct TorrentList: View {
             })
             .dialogSeverity(.critical)
 
+            .onChange(of: categoryFilter) {
+                updateSelected()
+            }
+            .onChange(of: stateFilter) {
+                updateSelected()
+            }
+            .onChange(of: search) {
+                updateSelected()
+            }
+
             .onDrop(of: ["public.file-url"], isTargeted: nil) { providers in
                 for provider in providers {
                     _ = provider.loadObject(ofClass: URL.self) { url, error in
@@ -451,6 +461,11 @@ struct TorrentList: View {
             }
             .padding(.horizontal, 15)
         }
+    }
+
+    func updateSelected() {
+        let visibleIds = visibleTorrents.map { $0.id }
+        selectedTorrents = selectedTorrents.filter { visibleIds.contains($0) }
     }
 }
 
