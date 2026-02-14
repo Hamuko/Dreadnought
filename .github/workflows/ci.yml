@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+        run: sudo xcode-select -s /Applications/Xcode_26.2.app
       - name: Build
         run: |
           [[ $GITHUB_REF_TYPE = "tag" ]] && MARKETING_VERSION=$GITHUB_REF_NAME || MARKETING_VERSION=$(git rev-parse --short HEAD)
